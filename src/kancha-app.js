@@ -20,9 +20,11 @@ import '@polymer/app-route/app-location.js';
 import '@polymer/app-route/app-route.js';
 import '@polymer/iron-pages/iron-pages.js';
 import '@polymer/iron-selector/iron-selector.js';
-import '@polymer/paper-icon-button/paper-icon-button.js';
 import '@polymer/paper-button/paper-button.js';
+import '@polymer/paper-icon-button/paper-icon-button.js';
 import './kancha-icons.js';
+import './kancha-teams.js';
+import './shared-styles.js';
 
 // Gesture events like tap and track generated from touch will not be
 // preventable, allowing for better scrolling performance.
@@ -48,67 +50,48 @@ class KanchaApp extends PolymerElement {
         .display_inline{
           display: inline-block;
         }
-        app-header {
+        app-toolbar {
             color: #fff;
             background-color: #0051a3;
         }
-        app-header paper-icon-button {
+        app-toolbar paper-icon-button {
             --paper-icon-button-ink-color: white;
         }
-        paper-button.green { 
+        paper-icon-button.green { 
           background-color: #4285f4;
           color: white;
+          width: 34px;
+          height: 34px;
+        }
+        .avatar{
+          width:40px;height:40px!important;
+          border-radius: 50%;
         }
       </style>
 
-      <app-location route="{{route}}" url-space-regex="^[[rootPath]]">
-      </app-location>
-
-      <app-route route="{{route}}" pattern="[[rootPath]]:page" data="{{routeData}}" tail="{{subroute}}">
-      </app-route>
-
-      <app-drawer-layout fullbleed="" narrow="{{narrow}}">
-        <!-- Drawer content -->
-        <app-drawer id="drawer" slot="drawer" swipe-open="[[narrow]]">
-          <app-toolbar>Menu</app-toolbar>
-          <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
-            <a name="view1" href="[[rootPath]]view1">View One</a>
-            <a name="view2" href="[[rootPath]]view2">View Two</a>
-            <a name="view3" href="[[rootPath]]view3">View Three</a>
-          </iron-selector>
-        </app-drawer>
-
-        <!-- Main content -->
-        <app-header-layout has-scrolling-region="">
-
-          <app-header slot="header" condenses="" reveals="" effects="waterfall">
-            <app-toolbar>
-              <paper-icon-button icon="kancha-icons:menu" drawer-toggle=""></paper-icon-button>
-              <div main-title="">Kancha BBVA</div>
-            </app-toolbar>
-          </app-header>
-
-          <div hidden$="{{logged}}" width="100%" style="text-align:center; margin-top:25%;">
-              <div id="msgFail" style="color:red"></div>
-              Bienvenid@ a Kudos, para poder dejar tu feedback debes identificarte:<br>
-              <paper-button class="green" raised on-click="_signInWithGoogle">
-                  <iron-icon icon="perm-identity"></iron-icon>
-                  Ingresar con mi cuenta Google (@bbva.com)
-              </paper-button>
-          </div>
-
-          <iron-pages selected="[[page]]" attr-for-selected="name" role="main">
-            <kancha-view1 name="view1"></kancha-view1>
-            <kancha-view2 name="view2"></kancha-view2>
-            <kancha-view3 name="view3"></kancha-view3>
-            <kancha-view404 name="view404"></kancha-view404>
-          </iron-pages>
-        </app-header-layout>
-      </app-drawer-layout>
+      <div hidden$="{{loggedIn}}" width="100%" style="text-align:center; margin-top:25%;">
+        <div id="msgFail" style="color:red"></div>
+        Bienvenid@ a Kancha para poder dejar tu feedback debes identificarte con una cuenta BBVA.COM<br>
+        <paper-icon-button class="green" icon="polymer" on-click="_signInWithGoogle">
+        </paper-icon-button>
+      </div>
       
-    <footer>
-      <a href="https://www.cytweb.com">Made by Imagos</a>
-    </footer>
+      <div hidden$="{{!loggedIn}}" width="100%" style="text-align:center;">
+        <app-toolbar>
+          <paper-icon-button icon="menu"></paper-icon-button>
+          <div main-title>[[nameApp]]</div>
+          <paper-icon-button icon="search"></paper-icon-button>
+          <paper-icon-button icon="exit-to-app" id="mExit"   title="Salir"        on-tap="signOut"  ></paper-icon-button>
+        </app-toolbar>
+        
+        <div style="display:table">
+          <img id="imgProfile" class="avatar" src="{{userPicture}}">
+          <div style="display:table-cell;vertical-align:middle"> ¡Welcome <span style="color:#448081;">{{userName}}</span>!</div>
+        </div>
+        <kancha-teams id="teams"></kancha-teams>
+      </div>
+
+        
     `;
   }
 
@@ -117,20 +100,20 @@ class KanchaApp extends PolymerElement {
       page: {
         type: String,
         reflectToAttribute: true,
-        value: 'view1',
-        observer: '_pageChanged'
+        value: 'teams'
       },
       routeData: Object,
       subroute: Object,
       nameApp: {
         type: String,
         notify: true,
-        value: 'kancha-app'
+        value: 'Kancha BBVA'
       },
       // Is Authenticated by Google?
-      logged: {
+      loggedIn: {
         type: Boolean,
-        notify: true
+        notify: true,
+        value: false
       },
       // Is Authenticated by Google?
       user: {
@@ -165,51 +148,6 @@ class KanchaApp extends PolymerElement {
       }
     };
   }
-
-  static get observers() {
-    return [
-      '_routePageChanged(routeData.page)'
-    ];
-  }
-
-  _routePageChanged(page) {
-     // Show the corresponding page according to the route.
-     //
-     // If no page was found in the route data, page will be an empty string.
-     // Show 'view1' in that case. And if the page doesn't exist, show 'view404'.
-    if (!page) {
-      this.page = 'view1';
-    } else if (['view1', 'view2', 'view3'].indexOf(page) !== -1) {
-      this.page = page;
-    } else {
-      this.page = 'view404';
-    }
-
-    // Close a non-persistent drawer when the page & route are changed.
-    if (!this.$.drawer.persistent) {
-      this.$.drawer.close();
-    }
-  }
-
-  _pageChanged(page) {
-    // Import the page component on demand.
-    // Note: `polymer build` doesn't like string concatenation in the import
-    // statement, so break it up.
-    switch (page) {
-      case 'view1':
-        import('./kancha-view1.js');
-        break;
-      case 'view2':
-        import('./kancha-view2.js');
-        break;
-      case 'view3':
-        import('./kancha-view3.js');
-        break;
-      case 'view404':
-        import('./kancha-view404.js');
-        break;
-    }
-  }
   
   _login(){
     var parent = this;
@@ -218,21 +156,25 @@ class KanchaApp extends PolymerElement {
       if (account) {
         console.log("user id: " + firebase.auth().currentUser.uid);
         if (account.email.toUpperCase().indexOf('@BBVA.COM')>=0){
+          var _userFirstName="";
+          var _userName="";
+          
           parent.set('user', account);
           parent.set('userEmail', account.email);
+          parent.$.teams.userEmail = account.email;
           if(account.displayName){
-            parent.$.cards.userFirstName    = account.displayName.split(' ')[0];    
-            parent.$.cards.userName         = account.displayName;
+            _userFirstName    = account.displayName.split(' ')[0];    
+            _userName         = account.displayName;
           }else{
-            parent.$.cards.userFirstName    = account.email;
-            parent.$.cards.userName         = account.email.toString().replace(/[@.]/g,'_');
+            _userFirstName    = account.email;
+            _userName         = account.email.toString().replace(/[@.]/g,'_');
           }
-          parent.$.cards.userEmail = account.email.toString().replace(/[@.]/g,'_');
-          parent.$.cards.userPicture = account.photoURL || '../images/avatar_login.png';
-          parent.set('userName', parent.$.cards.userName);
-          parent.set('userPicture', parent.$.cards.userPicture);
-          parent.set('logged', true);
-          //parent.loadlistEvents();
+          
+          parent.set('userFirstName', _userFirstName);
+          parent.set('userName', _userName);
+          parent.set('userPicture', account.photoURL || '../images/avatar_login.png');
+          parent.set('loggedIn', true);
+          parent.$.teams.loadlistAreas();
         }else{
           parent.$.msgFail.innerHTML="Tu usuario no es BBVA";
           parent.signOut();
@@ -247,8 +189,7 @@ class KanchaApp extends PolymerElement {
         var parent = this;
         firebase.auth().signInWithRedirect(provider);
         firebase.auth().getRedirectResult().then(function(result) {
-          parent.set('logged', true);
-          parent.showCards();
+          parent.set('loggedIn', true);
         }).catch(function(error) { //error.code //error.message //error.credential
             if (error.code === 'auth/account-exists-with-different-credential') {
                 alert('You have already signed up with a different auth provider for that email.');
@@ -257,8 +198,13 @@ class KanchaApp extends PolymerElement {
             }
         });
     } else {
-        //firebase.auth().signOut();
+        firebase.auth().signOut();
     }
+  }
+  
+  signOut() {
+    firebase.auth().signOut();
+    this.set('loggedIn', false);
   }
   
   ready() {

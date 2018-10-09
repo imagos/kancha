@@ -12,13 +12,11 @@
   ],
   "builds": [
     {
-      "name": "esm-bundled",
-      "browserCapabilities": [
-        "es2015",
-        "modules"
-      ],
+      "name": "es5-bundled",
       "js": {
-        "minify": true
+        "minify": true,
+        "compile": true,
+        "transformModulesToAmd": true
       },
       "css": {
         "minify": true

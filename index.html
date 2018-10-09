@@ -113,7 +113,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       storageBucket: "kancha-peru.appspot.com",
       messagingSenderId: "620996115783"
     };
-    firebase.initializeApp(config);
+    firebase.initializeApp(config,{timestampsInSnapshots: true});
+    var db = firebase.firestore();
     </script>
     <kancha-app></kancha-app>
     <noscript>

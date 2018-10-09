@@ -90,6 +90,26 @@ Looking for our older PSK2 Polycast or migration blog post? See [the previous RE
 # Run for local
 polymer serve build/esm-bundled --hostname 0.0.0.0 
 
+
+    {
+      "name": "esm-bundled",
+      "browserCapabilities": [
+        "es2015",
+        "modules"
+      ],
+      "js": {
+        "minify": true
+      },
+      "css": {
+        "minify": true
+      },
+      "html": {
+        "minify": true
+      },
+      "bundle": true,
+      "addServiceWorker": true
+    }
+    
     {
       "name": "es6-bundled",
       "browserCapabilities": [
