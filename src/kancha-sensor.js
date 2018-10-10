@@ -64,28 +64,55 @@ class KanchaSensor extends PolymerElement {
         .title_slider{
           width:20% !important;
           margin: 0px !important;
-          padding: 0px 5px 0px 0px !important;
+          padding: 5px 0 !important;
+          height: 50px;
+          vertical-align: top;
         }
         .content_slider{
           width:75% !important;
           margin: 0px !important;
-          padding: 0px !important;
+          padding: 5px 0 !important;
+          text-align: center;
+          height: 50px;
         }
+        .msg_error{
+          color: #a94442;
+          background-color: #f2dede;
+          border-color: #ebccd1;
+        }
+        .msg_success{
+          color: #3c763d;
+          background-color: #dff0d8;
+          border-color: #d6e9c6;
+        }
+        .msg_info {
+          color: #31708f;
+          background-color: #d9edf7;
+          border-color: #bce8f1;
+        }
+        .msg_warning{
+          color: #8a6d3b;
+          background-color: #fcf8e3;
+          border-color: #faebcc;
+        }        
       </style>
+      <div class="left card-content msg_info" hidden$=[[hiddenMessage]]>
+        <p>[[message]]</p>
+      </div>
       <div hidden$=[[!visible]]>
         <paper-card>
           <div class="card-content">
             <div class="left">
               <div>
                 <div class="display_inline title_slider"><span class="title">Pulse:</span></div>
-                <div class="display_inline content_slider"><kancha-slider id="pulseSlider"></kancha-slider></div>
+                <div class="display_inline content_slider"><kancha-slider id="pulseSlider" limits=[[rangePulse]] ></kancha-slider></div>
               </div>
               <paper-tags-input id="tagPulse"></paper-tags-input>
             </div>
             
             <div class="left">
               <div class="display_inline title_slider"><span class="title">Weather:</span></div>
-              <div class="display_inline content_slider"><kancha-slider id="weatherSlider"></kancha-slider></div>
+              <div class="display_inline content_slider"><kancha-slider id="weatherSlider" limits=[[rangeWeather]]></kancha-slider></div>
               <paper-tags-input id="tagWeather"></paper-tags-input>
             </div>
           </div>
@@ -107,7 +134,8 @@ class KanchaSensor extends PolymerElement {
         type: Boolean,
         reflectToAttribute: true,
         notify: true,
-        value: false
+        value: false,
+        observer: '_resetIdVisit'
       },
       teamId: {
         type: String,
@@ -128,24 +156,62 @@ class KanchaSensor extends PolymerElement {
       userEmail: {
         type: String,
         notify: true
+      },
+      rangePulse: {
+        type:   Array,
+        notify: true,
+        value:  [{id: 1, name: 'Zombi'},{id: 2, name: 'UCI'},{id: 3, name: 'Estable'},{id: 4, name: 'Vital'},{id: 5, name: 'Esteroides'}]
+      },
+      rangeWeather: {
+        type:   Array,
+        notify: true,
+        value:  [{id: 1, name: 'Árido'},{id: 2, name: 'Frio'},{id: 3, name: 'Continental'},{id: 4, name: 'Templado'},{id: 5, name: 'Tropical'}]
+      },
+      hiddenMessage:{
+        type:   Boolean,
+        notify: true,
+        value:  true
+      },
+      message:{
+        type:   String,
+        notify: true,
+        observer: '_messageChanged'
+      },
+      idVisit:{
+        type:   String,
+        notify: true
       }
     };
   }
   
   getVisit(){
     var self=this;
-    var dateRegister=new Date(self.date);
     db.settings({timestampsInSnapshots: true});
     this.teams=[];
-    db.collection("visits").where("teamId", "==", self.teamId).where("userUid", "==", dateRegister)
+    db.collection("visits").where("teamId", "==", self.teamId).where("date", "==", self.date)
       .get()
       .then(function(querySnapshot) {
-          querySnapshot.forEach(function(doc) {
-            console.info(doc);
-          });
+          if(querySnapshot.empty){
+            self.message="Tú serás el primero en registrar la visita. Happy coaching!";    
+          }else{
+            console.info('visita');
+            console.info(querySnapshot.docs[0].id);
+            self.message="Ajá! Tenemos una visita registrada. Si tienes algo que aportar es el momento.";    
+            self.pulseSlider    = querySnapshot.docs[0].pulse;
+            self.weatherSlider  = querySnapshot.docs[0].weather;
+
+            self.$.pulseSlider._value   = querySnapshot.docs[0].pulse;
+            self.$.weatherSlider._value = querySnapshot.docs[0].weather;
+            
+            self.$.tagPulse.tags        = querySnapshot.docs[0].tagPulse;
+            self.$.tagWeather.tags      = querySnapshot.docs[0].tagWeather;
+            
+            self.idVisit=querySnapshot.docs[0].id;
+          }
       })
       .catch(function(error) {
-          console.log("Error getting documents: ", error);
+        
+        console.log("Error getting documents: ", error);
       });
     self.visible=true;
   }
@@ -154,12 +220,19 @@ class KanchaSensor extends PolymerElement {
     this.visible=false;
   }
   
+  _messageChanged(newValue, oldValue){
+    var self=this;
+    console.info('entramos');
+    this.hiddenMessage=false;
+    setTimeout(function(){self.hiddenMessage=true;self.message="";},2000);
+  }
+  
   saveVisit(){
     //Validar que los datos iniciales se encuentren llenos
     var self=this;
     
-    if(self.$.tagPulse.tags.length==0 && self.$.tagWeather.tags.length==0){
-      console.error("faltan datos")
+    if(self.$.tagPulse.tags.length==0 || self.$.tagWeather.tags.length==0){
+      self.message="Faltan ingresar los hashtags";
       return;
     }
     
@@ -176,12 +249,18 @@ class KanchaSensor extends PolymerElement {
     })
     .then(function() {
       self.$.toastConfirmation.open();
-      console.log("Document successfully written!");
+      self.message="Visita registrada con éxito!";
       //bloquear campos
     })
     .catch(function(error) {
-      console.error("Error writing document: ", error);
+      self.message="Error al registrar su visita: Details: " + error;
     });
+  }
+  
+  _resetIdVisit(newValue,oldValue){
+    if(!newValue){
+      this.idVisit="";
+    }
   }
 }
 

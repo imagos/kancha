@@ -94,7 +94,7 @@ class KanchaTeams extends PolymerElement {
   }
   
   searchVisit(){
-    var self=this;+
+    var self=this;
     console.info(self.$.teamSel.selectedItem);
     if(self.$.teamSel.selectedItem){
       self.$.sensor.teamId=self.$.teamSel.selectedItem.value;
