@@ -91,7 +91,7 @@ class KanchaSensor extends PolymerElement {
           </div>
           
           <div class="card-actions">
-            <paper-button class="button_verify" on-click="Registrar">Verificar</paper-button>
+            <paper-button class="button_verify" on-click="saveVisit">Regitrar</paper-button>
             <paper-button class="button_cancel" on-click="reset">Cancelar</paper-button>
           </div>
         </paper-card>

@@ -34,13 +34,6 @@ class KanchaSlider extends PolymerElement {
           opacity: 1;
       }
       
-      .slider::-webkit-slider-thumb:hover, .slider::-webkit-slider-thumb:active  {
-          background: yellow !important;
-      }
-      .slider::-moz-range-thumb:hover, .slider::-moz-range-thumb:active{
-          background: yellow !important;
-      }
-      
       .slider::-webkit-slider-thumb {
           -webkit-appearance: none;
           appearance: none;
