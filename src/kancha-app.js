@@ -80,15 +80,14 @@ class KanchaApp extends PolymerElement {
         <app-toolbar>
           <paper-icon-button icon="menu"></paper-icon-button>
           <div main-title>[[nameApp]]</div>
-          <paper-icon-button icon="search"></paper-icon-button>
+          <div style="display:table">
+            <img id="imgProfile" class="avatar" src="{{userPicture}}">
+          </div>
           <paper-icon-button icon="exit-to-app" id="mExit"   title="Salir"        on-tap="signOut"  ></paper-icon-button>
         </app-toolbar>
         
-        <div style="display:table">
-          <img id="imgProfile" class="avatar" src="{{userPicture}}">
-          <div style="display:table-cell;vertical-align:middle"> ¡Welcome <span style="color:#448081;">{{userName}}</span>!</div>
-        </div>
         <kancha-teams id="teams"></kancha-teams>
+        <div style="font-size: 8px;color: gray;">develop by @imago group for BBVA Continental</div>
       </div>
 
         
@@ -154,7 +153,6 @@ class KanchaApp extends PolymerElement {
     firebase.auth().onAuthStateChanged(function(account) {
       
       if (account) {
-        console.log("user id: " + firebase.auth().currentUser.uid);
         if (account.email.toUpperCase().indexOf('@BBVA.COM')>=0){
           var _userFirstName="";
           var _userName="";
@@ -162,6 +160,7 @@ class KanchaApp extends PolymerElement {
           parent.set('user', account);
           parent.set('userEmail', account.email);
           parent.$.teams.userEmail = account.email;
+          parent.$.teams.userUid = account.uid;
           if(account.displayName){
             _userFirstName    = account.displayName.split(' ')[0];    
             _userName         = account.displayName;

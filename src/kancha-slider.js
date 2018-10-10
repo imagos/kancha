@@ -1,321 +1,74 @@
-import { LitElement, html } from '@polymer/lit-element/lit-element.js';
-import { wired } from 'wired-lib/wired-lib.js';
-import { addListener, removeListener } from '@polymer/polymer/lib/utils/gestures.js';
+import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 
-export class KanchaSlider extends LitElement {
+class KanchaSlider extends PolymerElement {
   static get properties() {
     return {
-      _value: { type: Number },
-      min: { type: Number },
-      max: { type: Number },
-      knobradius: { type: Number },
-      disabled: { type: Boolean }
+      _value:     { type: Number, notify: true, value:1 },
+      min:        { type: Number, notify: true, value:1 },
+      max:        { type: Number, notify: true, value:5 },
+      knobradius: { type: Number, notify: true },
+      disabled:   { type: Boolean, notify: true, value:false }
     };
   }
 
-  constructor() {
-    super();
-    this.disabled = false;
-    this._value = 0;
-    this.min = 0;
-    this.max = 100;
-    this.knobradius = 10;
-    this.step = 1;
-  }
-
-  createRenderRoot() {
-    const root = super.createRenderRoot();
-    this.classList.add('pending');
-    return root;
-  }
-
-  render() {
-    this._onDisableChange();
+  static get template() {
     return html`
     <style>
-      :host {
-        display: inline-block;
-        position: relative;
-        width: 300px;
-        height: 40px;
-        outline: none;
-        box-sizing: border-box;
+      .slidecontainer {
+          width: 100%;
       }
-    
-      :host(.disabled) {
-        opacity: 0.45 !important;
-        cursor: default;
-        pointer-events: none;
-        background: rgba(0, 0, 0, 0.07);
-        border-radius: 5px;
+      
+      .slider {
+          -webkit-appearance: none;
+          width: 150px;
+          height: 20px;
+          border-radius: 10px;
+          background: #d3d5d5;
+          outline: none;
+          opacity: 0.7;
+          -webkit-transition: .2s;
+          transition: opacity .2s;
       }
-    
-      :host(.disabled) .knob {
-        pointer-events: none !important;
+      
+      .slider:hover, .slider:active {
+          opacity: 1;
       }
-    
-      :host(:focus) .knob {
-        cursor: move;
-        stroke: var(--wired-slider-knob-outline-color, #000);
-        fill-opacity: 0.8;
+      
+      .slider::-webkit-slider-thumb:hover, .slider::-webkit-slider-thumb:active  {
+          background: yellow !important;
       }
-    
-      .overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        pointer-events: none;
+      .slider::-moz-range-thumb:hover, .slider::-moz-range-thumb:active{
+          background: yellow !important;
       }
-    
-      svg {
-        display: block;
+      
+      .slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 35px;
+          height: 35px;
+          border-radius: 10px;
+          box-shadow: -3px 2px black;
+          background: #0051a3;
+          cursor: pointer;
       }
-    
-      path {
-        stroke-width: 0.7;
-        fill: transparent;
-      }
-    
-      .knob {
-        pointer-events: auto;
-        fill: var(--wired-slider-knob-zero-color, gray);
-        stroke: var(--wired-slider-knob-zero-color, gray);
-        transition: transform 0.15s ease;
-        cursor: pointer;
-      }
-    
-      .hasValue {
-        fill: var(--wired-slider-knob-color, rgb(51, 103, 214));
-        stroke: var(--wired-slider-knob-color, rgb(51, 103, 214));
-      }
-    
-      .bar {
-        stroke: var(--wired-slider-bar-color, rgb(0, 0, 0));
-      }
-    
-      :host(.pending) {
-        opacity: 0;
+      
+      .slider::-moz-range-thumb {
+          width: 35px;
+          height: 35px;
+          border-radius: 10px;
+          box-shadow: -3px 2px black;
+          background: #0051a3;
+          cursor: pointer;
       }
     </style>
-    <div class="overlay">
-      <svg id="svg"></svg>
+    
+    <div class="slidecontainer">
+      <input type="range" min=[[min]] max=[[max]] value="{{_value::input}}" class="slider" id="range">
     </div>
     `;
   }
-
-  get value() {
-    return this._value;
-  }
-
-  set value(v) {
-    this._setValue(v, true);
-  }
-
-  _onDisableChange() {
-    if (this.disabled) {
-      this.classList.add("disabled");
-    } else {
-      this.classList.remove("disabled");
-    }
-    this._refreshTabIndex();
-  }
-
-  _clearNode(node) {
-    while (node.hasChildNodes()) {
-      node.removeChild(node.lastChild);
-    }
-  }
-
-  connectedCallback() {
-    super.connectedCallback();
-    setTimeout(() => this.firstUpdated(), 100);
-  }
-
-  firstUpdated() {
-    const svg = this.shadowRoot.getElementById('svg');
-    this._clearNode(svg);
-    const s = this.getBoundingClientRect();
-    svg.setAttribute("width", s.width);
-    svg.setAttribute("height", s.height);
-    let radius = this.knobradius || 10;
-    this._barWidth = s.width - (2 * radius);
-    this._bar = wired.line(svg, radius, s.height / 2, s.width - radius, s.height / 2);
-    this._bar.classList.add("bar");
-    this._knobGroup = wired._svgNode("g");
-    svg.appendChild(this._knobGroup);
-    this._knob = wired.ellipse(this._knobGroup, radius, s.height / 2, radius * 2, radius * 2);
-    this._knob.classList.add("knob");
-    this._onValueChange();
-    this.classList.remove('pending');
-    this._knobAttached = false;
-
-    this._setAria();
-    this._attachEvents();
-  }
-
-  _setAria() {
-    this.setAttribute('role', 'slider');
-    this.setAttribute('aria-valuemax', this.max);
-    this.setAttribute('aria-valuemin', this.min);
-    this._setAriaValue();
-    this._refreshTabIndex();
-  }
-
-  _refreshTabIndex() {
-    this.tabIndex = this.disabled ? -1 : (this.getAttribute('tabindex') || 0);
-  }
-
-  _setAriaValue() {
-    this.setAttribute('aria-valuenow', this.value);
-  }
-
-  _setValue(v, skipEvent) {
-    this._value = v;
-    this._setAriaValue();
-    this._onValueChange();
-    if (!skipEvent) {
-      const event = new CustomEvent('change', { bubbles: true, composed: true, detail: { value: this._intermediateValue } });
-      this.dispatchEvent(event);
-    }
-  }
-
-  _incremenent() {
-    const newValue = Math.min(this.max, Math.round(this.value + this.step));
-    if (newValue != this.value) {
-      this._setValue(newValue);
-    }
-  }
-
-  _decrement() {
-    const newValue = Math.max(this.min, Math.round(this.value - this.step));
-    if (newValue != this.value) {
-      this._setValue(newValue);
-    }
-  }
-
-  _attachEvents() {
-    if (!this._knobAttached) {
-      addListener(this._knob, 'down', (event) => {
-        if (!this.disabled) {
-          this._knobdown(event);
-        }
-      });
-      addListener(this._knob, 'up', (event) => {
-        if (!this.disabled) {
-          this._resetKnob(event);
-        }
-      });
-      addListener(this._knob, 'track', (event) => {
-        if (!this.disabled) {
-          this._onTrack(event);
-        }
-      });
-      this._knobAttached = true;
-    }
-    if (!this._keyboardAttached) {
-      this.addEventListener('keydown', (event) => {
-        switch (event.keyCode) {
-          case 38:
-          case 39:
-            this._incremenent();
-            break;
-          case 37:
-          case 40:
-            this._decrement();
-            break;
-          case 36:
-            this._setValue(this.min);
-            break;
-          case 35:
-            this._setValue(this.max);
-            break;
-        }
-      });
-      this._keyboardAttached = true;
-    }
-  }
-
-  _onValueChange() {
-    if (!this._knob) {
-      return;
-    }
-    let pct = 0;
-    if (this.max > this.min) {
-      pct = Math.min(1, Math.max((this.value - this.min) / (this.max - this.min), 0));
-    }
-    this._pct = pct;
-    if (pct) {
-      this._knob.classList.add("hasValue");
-    } else {
-      this._knob.classList.remove("hasValue")
-    }
-    let knobOffset = pct * this._barWidth;
-    this._knobGroup.style.transform = "translateX(" + Math.round(knobOffset) + "px)";
-  }
-
-  _knobdown(event) {
-    this._knobExpand(true);
-    event.preventDefault();
-    this.focus();
-  }
-
-  _resetKnob(event) {
-    this._knobExpand(false);
-  }
-
-  _knobExpand(value) {
-    if (this._knob) {
-      if (value) {
-        this._knob.classList.add("expanded");
-      } else {
-        this._knob.classList.remove("expanded");
-      }
-    }
-  }
-
-  _onTrack(event) {
-    event.stopPropagation();
-    switch (event.detail.state) {
-      case 'start':
-        this._trackStart(event);
-        break;
-      case 'track':
-        this._trackX(event);
-        break;
-      case 'end':
-        this._trackEnd();
-        break;
-    }
-  }
-
-  _trackStart(event) {
-    this._intermediateValue = this.value;
-    this._startx = this._pct * this._barWidth;
-    this._knobstartx = this._startx;
-    this._minx = -this._startx;
-    this._maxx = this._barWidth - this._startx;
-    this._dragging = true;
-  }
-
-  _trackX(event) {
-    if (!this._dragging) {
-      this._trackStart(event);
-    }
-    var dx = event.detail.dx || 0;
-    var newX = Math.max(Math.min(this._startx + dx, this._barWidth), 0);
-    this._knobGroup.style.transform = "translateX(" + Math.round(newX) + "px)";
-    var newPct = newX / this._barWidth;
-    this._intermediateValue = this.min + newPct * (this.max - this.min);
-  }
-
-  _trackEnd() {
-    this._dragging = false;
-    this._resetKnob();
-    this._setValue(this._intermediateValue);
-    this._pct = (this.value - this.min) / (this.max - this.min);
-  }
+  
+  
 }
 customElements.define('kancha-slider', KanchaSlider);
 
