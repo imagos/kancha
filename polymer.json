@@ -12,10 +12,12 @@
   ],
   "builds": [
     {
-      "name": "es5-bundled",
+      "name": "es6-bundled",
+      "browserCapabilities": [
+        "es2015"
+      ],
       "js": {
         "minify": true,
-        "compile": true,
         "transformModulesToAmd": true
       },
       "css": {

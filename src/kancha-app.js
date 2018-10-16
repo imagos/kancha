@@ -57,7 +57,7 @@ class KanchaApp extends PolymerElement {
         app-toolbar paper-icon-button {
             --paper-icon-button-ink-color: white;
         }
-        paper-icon-button.green { 
+        paper-button.login { 
           background-color: #4285f4;
           color: white;
           width: 34px;
@@ -72,8 +72,8 @@ class KanchaApp extends PolymerElement {
       <div hidden$="{{loggedIn}}" width="100%" style="text-align:center; margin-top:25%;">
         <div id="msgFail" style="color:red"></div>
         Bienvenid@ a Kancha para poder dejar tu feedback debes identificarte con una cuenta BBVA.COM<br>
-        <paper-icon-button class="green" icon="polymer" on-click="_signInWithGoogle">
-        </paper-icon-button>
+        <paper-button class="login" on-click="_signInWithGoogle">Login
+        </paper-button>
       </div>
       
       <div hidden$="{{!loggedIn}}" width="100%" style="text-align:center;">
@@ -87,7 +87,7 @@ class KanchaApp extends PolymerElement {
         </app-toolbar>
         
         <kancha-teams id="teams"></kancha-teams>
-        <div style="font-size: 8px;color: gray;">develop by @imago group for BBVA Continental</div>
+        <div style="font-size: 8px;color: gray;">Developed by @imago.group for BBVA Continental</div>
       </div>
 
         

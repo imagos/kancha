@@ -3,7 +3,7 @@ import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 class KanchaSlider extends PolymerElement {
   static get properties() {
     return {
-      _value:     { type: Number, notify: true, value:1, observer: '_valueChanged' },
+      _value:     { type: Number, notify: true, value:1,  reflectToAttribute: true, observer: '_valueChanged' },
       min:        { type: Number, notify: true, value:1 },
       max:        { type: Number, notify: true, value:5 },
       knobradius: { type: Number, notify: true },
@@ -64,8 +64,10 @@ class KanchaSlider extends PolymerElement {
   }
   
   _valueChanged(newValue, oldValue) {
-    let res = this.limits.filter(item => item.id == newValue);
-    this.$.label.innerHTML=res[0].name;
+    if(newValue!=undefined){
+      let res = this.limits.filter(item => item.id == newValue);  
+      this.$.label.innerHTML=res[0].name;
+    }
   }
 }
 customElements.define('kancha-slider', KanchaSlider);

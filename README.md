@@ -92,8 +92,15 @@ nvm ls
 nvm use 8.4
 
 # Run for local
+
+
 polymer serve --hostname 0.0.0.0 
+
+polymer build
 polymer serve build/es5-bundled --hostname 0.0.0.0 
+
+#deploy without localhost
+firebase login --no-localhost
 
 # Text for help
 Today you can help to BBVA teams use metrics with sense. Pls you should ask them direct questions.
