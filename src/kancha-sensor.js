@@ -9,11 +9,12 @@
  */
 
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
-import '@cwmr/paper-tags-input/paper-tags-input.js';
 import '@polymer/paper-card/paper-card.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-toast/paper-toast.js';
+import '@polymer/paper-dialog/paper-dialog.js';
 import './kancha-slider.js';
+import './kancha-tags-input.js';
 
 class KanchaSensor extends PolymerElement {
   static get template() {
@@ -106,7 +107,57 @@ class KanchaSensor extends PolymerElement {
           color: #8a6d3b;
           background-color: #fcf8e3;
           border-color: #faebcc;
-        }        
+        }    
+        .hashtag{
+          width: 80%
+        }
+        .help_icon{
+          width: 15%
+        }
+        .favorite{
+          background: #ee6e73 !important;
+        }
+        .margin_bottom{
+          margin-bottom: 17px;
+        }
+        
+        .pulse {
+          border-radius: 50%;
+          background: #26a69a;;
+          color: #fff;
+          cursor: pointer;
+          box-shadow: 0 0 0 rgba(204,169,44, 0.4);
+          animation: pulse 2s infinite;
+        }
+        .pulse:hover {
+          animation: none;
+        }
+        
+        @-webkit-keyframes pulse {
+          0% {
+            -webkit-box-shadow: 0 0 0 0 rgba(204,169,44, 0.4);
+          }
+          70% {
+              -webkit-box-shadow: 0 0 0 10px rgba(204,169,44, 0);
+          }
+          100% {
+              -webkit-box-shadow: 0 0 0 0 rgba(204,169,44, 0);
+          }
+        }
+        @keyframes pulse {
+          0% {
+            -moz-box-shadow: 0 0 0 0 rgba(204,169,44, 0.4);
+            box-shadow: 0 0 0 0 rgba(204,169,44, 0.4);
+          }
+          70% {
+              -moz-box-shadow: 0 0 0 10px rgba(204,169,44, 0);
+              box-shadow: 0 0 0 10px rgba(204,169,44, 0);
+          }
+          100% {
+              -moz-box-shadow: 0 0 0 0 rgba(204,169,44, 0);
+              box-shadow: 0 0 0 0 rgba(204,169,44, 0);
+          }
+        }
       </style>
       <div class="left card-content msg_basic msg_info" hidden$=[[hiddenMessage]]>
         <div id='close' hidden$=[[hiddenMessage]] on-click="_closeMessage">X</div>
@@ -115,18 +166,44 @@ class KanchaSensor extends PolymerElement {
       <div hidden$=[[!visibleSensor]]>
         <paper-card>
           <div class="card-content">
-            <div class="left">
+            <div class="left margin_bottom">
               <div>
-                <div class="display_inline title_slider"><iron-icon icon="favorite-border"></iron-icon> <br><span class="title">Pulse:</span></div>
-                <div class="display_inline content_slider"><kancha-slider id="pulseSlider" limits=[[rangePulse]] _value={{pulseSlider}}></kancha-slider></div>
+                <div class="display_inline title_slider">
+                  <paper-icon-button icon="favorite-border" title="Help" on-tap="openTipsPulse" class="pulse favorite"></paper-icon-button>
+                  <br>
+                  <span class="title">Pulse:</span>
+                </div>
+                <div class="display_inline content_slider"><kancha-slider id="pulseSlider" limits=[[pulseRange]] _value={{pulseSlider}}></kancha-slider></div>
               </div>
-              <paper-tags-input id="tagPulse"></paper-tags-input>
+              <br>
+              <div>
+                <div class="display_inline hashtag">
+                  <kancha-tags-input id="tagPulse" required=true title="Hashtag for Pulse (@event #pattern1 #pattern2)" placeholder="For example @synch #agileOnFire">
+                  </kancha-tags-input>
+                </div>
+                <div class="display_inline help_icon"> 
+                  <paper-icon-button icon="help" title="Help" on-tap="openTipsPulseSug" class="pulse"></paper-icon-button>
+                </div>
+              </div>
             </div>
             
             <div class="left">
-              <div class="display_inline title_slider"><iron-icon icon="cloud-queue"></iron-icon><br><span class="title">Weather:</span></div>
-              <div class="display_inline content_slider"><kancha-slider id="weatherSlider" limits=[[rangeWeather]] _value={{weatherSlider}}></kancha-slider></div>
-              <paper-tags-input id="tagWeather"></paper-tags-input>
+              <div class="display_inline title_slider">
+                <paper-icon-button icon="cloud-queue" title="Help for Weather" on-tap="openTipsWeather" class="pulse favorite"></paper-icon-button>
+                <br>
+                <span class="title">Weather:</span>
+              </div>
+              <div class="display_inline content_slider"><kancha-slider id="weatherSlider" limits=[[weatherRange]] _value={{weatherSlider}}></kancha-slider></div>
+              <div>
+                <div class="display_inline hashtag">
+                  <kancha-tags-input id="tagWeather" required=true title="Hashtag for Weather " placeholder="For example #storming">
+                  </kancha-tags-input>
+                </div>
+                <div class="display_inline help_icon"> 
+                  <paper-icon-button icon="help" title="Help for Hashtags" on-tap="openTipsWeatherSug" class="pulse"></paper-icon-button>
+                </div>
+              </div>
+              
             </div>
           </div>
           
@@ -137,6 +214,16 @@ class KanchaSensor extends PolymerElement {
         </paper-card>
         <paper-toast id="toastConfirmation" text="Visit registered">
         </paper-toast>
+        <paper-dialog id="pdTips">
+          <h2>Tips</h2>
+          <paper-dialog-scrollable>
+            <table id="textPaperDialog">
+            </table>
+          </paper-dialog-scrollable>
+          <div class="buttons">
+            <paper-button dialog-confirm autofocus>Accept</paper-button>
+          </div>
+        </paper-dialog>
       <div>
     `;
   }
@@ -170,15 +257,23 @@ class KanchaSensor extends PolymerElement {
         type: String,
         notify: true
       },
-      rangePulse: {
+      pulseRange: {
         type:   Array,
         notify: true,
         value:  [{id: 1, name: 'Muerto'},{id: 2, name: 'En coma'},{id: 3, name: 'Intermitente'},{id: 4, name: 'Saludable'},{id: 5, name: 'Taquicardia'}]
       },
-      rangeWeather: {
+      weatherRange: {
         type:   Array,
         notify: true,
         value:  [{id: 1, name: 'Cataclismo'},{id: 2, name: 'Tormentoso'},{id: 3, name: 'Lluvioso'},{id: 4, name: 'Nublado'},{id: 5, name: 'Soleado'}]
+      },
+      pulseSuggestions: {
+        type:   Array,
+        notify: true,
+      },
+      weatherSuggestions: {
+        type:   Array,
+        notify: true,
       },
       hiddenMessage:{
         type:   Boolean,
@@ -218,6 +313,14 @@ class KanchaSensor extends PolymerElement {
       },
     };
   }
+  
+  ready(){
+    super.ready();
+    this._loadlistWeather();
+    this._loadlistPulse();
+    this._loadSuggetions();
+  }
+  
   _changePulse(newValue,oldValue){
     this.hiddenBtnSubmit=false;
   }
@@ -293,8 +396,14 @@ class KanchaSensor extends PolymerElement {
     //Validar que los datos iniciales se encuentren llenos
     var self=this;
     
-    if(self.$.tagPulse.tags == null || self.$.tagWeather.tags == null  || self.$.tagPulse.tags.length==0 || self.$.tagWeather.tags.length==0){
+    if(self.$.tagPulse.tags == null || self.$.tagPulse.tags.length==0){
       self.message="Faltan ingresar los hashtags";
+      self.$.tagPulse.focus();
+      return;
+    }
+    if(self.$.tagWeather.tags == null || self.$.tagWeather.tags.length==0){
+      self.message="Faltan ingresar los hashtags";
+      self.$.tagWeather.focus();
       return;
     }
     self.corrVisit++;
@@ -325,6 +434,107 @@ class KanchaSensor extends PolymerElement {
     if(!newValue){
       this.idVisit="";
     }
+  }
+  
+  _loadlistPulse(){
+    var self=this;
+    db.settings({timestampsInSnapshots: true});
+    this.pulseRange=[];
+    db.collection("pulseRange").orderBy("value","asc")
+      .get()
+      .then(function(querySnapshot) {
+          querySnapshot.forEach(function(doc) {
+              var item={};
+              item.id     = doc.data().value;
+              item.name   = doc.data().name;
+              item.description  = doc.data().description;
+              self.pulseRange.push(item);
+          });
+          
+      })
+      .catch(function(error) {
+          console.log("Error getting Pulse range: ", error);
+      });
+  }
+  
+  _loadlistWeather(){
+    var self=this;
+    db.settings({timestampsInSnapshots: true});
+    this.weatherRange=[];
+    db.collection("weatherRange").orderBy("value","asc")
+      .get()
+      .then(function(querySnapshot) {
+          querySnapshot.forEach(function(doc) {
+              var item={};
+              item.id     = doc.data().value;
+              item.name   = doc.data().name;
+              item.description  = doc.data().description;
+              self.weatherRange.push(item);
+          });
+          
+      })
+      .catch(function(error) {
+          console.log("Error getting Weather Range: ", error);
+      });
+  }
+  
+  _loadSuggetions(){
+    var self=this;
+    db.settings({timestampsInSnapshots: true});
+    this.pulseSuggestions=[];
+    this.weatherSuggestions=[];
+    db.collection("tagSuggestions").orderBy("name","asc")
+      .get()
+      .then(function(querySnapshot) {
+          querySnapshot.forEach(function(doc) {
+              var item={};
+              item.type     = doc.data().type;
+              item.name   = doc.data().name;
+              item.description  = doc.data().description;
+              if(item.type=="pulse"){
+                self.pulseSuggestions.push(item);
+              }else if(item.type=="weather"){
+                self.weatherSuggestions.push(item);
+              }else{
+                self.pulseSuggestions.push(item);
+                self.weatherSuggestions.push(item);
+              } 
+          });
+          
+      })
+      .catch(function(error) {
+          console.log("Error getting Weather Range: ", error);
+      });
+  }
+  
+  _cleanTableTips(array){
+    this.$.pdTips.open();
+    var table=this.$.textPaperDialog;
+    var tableRows = table.getElementsByTagName('tr');
+    var rowCount = tableRows.length;
+    if (rowCount>0){
+      table.innerHTML="";
+    }
+    array.forEach(function(element) {
+      var row = table.insertRow(0);
+      var cell1 = row.insertCell(0);
+      var cell2 = row.insertCell(1);
+      cell1.innerHTML = "<b>" + element.name + ":<b> " ;
+      cell2.innerHTML = element.description;
+    });
+  }
+  
+  openTipsPulse(){
+    this._cleanTableTips(this.pulseRange);
+  }
+  openTipsWeather(){
+    this._cleanTableTips(this.weatherRange);
+  }
+  openTipsWeatherSug(){
+    this._cleanTableTips(this.weatherSuggestions);
+  }
+  openTipsPulseSug(){
+    this._cleanTableTips(this.pulseSuggestions);
   }
 }
 
