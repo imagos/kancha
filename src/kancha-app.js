@@ -22,6 +22,7 @@ import '@polymer/iron-pages/iron-pages.js';
 import '@polymer/iron-selector/iron-selector.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/paper-dialog/paper-dialog.js';
 import './kancha-icons.js';
 import './kancha-teams.js';
 import './shared-styles.js';
@@ -79,18 +80,31 @@ class KanchaApp extends PolymerElement {
       <div hidden$="{{!loggedIn}}" width="100%" style="text-align:center;">
         <app-toolbar>
           <paper-icon-button icon="menu"></paper-icon-button>
+          <paper-listbox slot="dropdown-content">
+            <paper-item>alpha</paper-item>
+          </paper-listbox>
           <div main-title>[[nameApp]]</div>
           <div style="display:table">
             <img id="imgProfile" class="avatar" src="{{userPicture}}">
           </div>
-          <paper-icon-button icon="exit-to-app" id="mExit"   title="Salir"        on-tap="signOut"  ></paper-icon-button>
+          <paper-icon-button icon="receipt" id="mReport" title="Report" on-tap="viewReport"  ></paper-icon-button>
+          <paper-icon-button icon="exit-to-app" id="mExit"   title="Exit"   on-tap="signOut"  ></paper-icon-button>
         </app-toolbar>
         
         <kancha-teams id="teams"></kancha-teams>
         <div style="font-size: 8px;color: gray;">Developed by @imago.group for BBVA Continental</div>
       </div>
-
-        
+      
+      <paper-dialog id="pdReport">
+        <h2>Report</h2>
+        <paper-dialog-scrollable>
+          <table id="textPaperDialog">
+          </table>
+        </paper-dialog-scrollable>
+        <div class="buttons">
+          <paper-button dialog-confirm autofocus>Accept</paper-button>
+        </div>
+      </paper-dialog>
     `;
   }
 
@@ -201,6 +215,58 @@ class KanchaApp extends PolymerElement {
     }
   }
   
+  _loadlistReport(){
+    var self=this;
+    var today = new Date();
+    var table=this.$.textPaperDialog;
+    //today.setDate(today.getDate() - 5);
+    var dd = today.getDate();
+    var mm = today.getMonth()+1; //January is 0!
+    var yyyy = today.getFullYear();
+    
+    if(dd<10) {
+        dd = '0'+dd;
+    } 
+    if(mm<10) {
+        mm = '0'+mm;
+    } 
+    today = yyyy + '-' + mm + '-' + dd ;
+    
+    
+    db.settings({timestampsInSnapshots: true});
+    //this.itemReport=[];
+    db.collection("visits").where("date","==",today)
+      .get()
+      .then(function(querySnapshot) {
+          querySnapshot.forEach(function(doc) {
+              
+              var row   = table.insertRow(0);
+              var cell1 = row.insertCell(0);
+              var cell2 = row.insertCell(1);
+              cell1.innerHTML = "<b>" + doc.data().teamName + ":<b> " ;
+              cell2.innerHTML = doc.data().userEmail;
+              //console.info(doc.data());
+              //var item={};
+              // item.teamId     = doc.data().teamId;
+              // item.userEmail  = doc.data().userEmail;
+              // self.itemReport.push(item);
+          });
+          self.$.pdReport.open();      
+      })
+      .catch(function(error) {
+          console.log("Error getting Visit Report: ", error);
+      });
+  }
+  
+  viewReport(){
+    var table=this.$.textPaperDialog;
+    var tableRows = table.getElementsByTagName('tr');
+    var rowCount = tableRows.length;
+    if (rowCount>0){
+      table.innerHTML="";
+    }
+    this._loadlistReport();
+  }
   signOut() {
     firebase.auth().signOut();
     this.set('loggedIn', false);
