@@ -15,56 +15,104 @@ class KanchaSlider extends PolymerElement {
   static get template() {
     return html`
     <style>
+      $slider-thumb-size: 50px;
+      .container{
+        width: 3.5em;
+      }
       .slidecontainer {
-          width: 100%;
+        float: left;
+        position: relative;
+        margin: 0 .5em .5em;
+        padding: .5em;
+        height: 5.5em;
+        width: 1.5em;
       }
       
-      .slider {
-          -webkit-appearance: none;
-          width: 150px;
-          height: 20px;
-          border-radius: 10px;
-          background: #d3d5d5;
-          outline: none;
-          opacity: 0.7;
-          -webkit-transition: .2s;
-          transition: opacity .2s;
+      [type='range'] {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin: 0px;
+        padding: 0;
+        width: 5.5em;
+        height: 1.5em;
+        transform: translate(-50%, -50%) rotate(-90deg);
+        background: transparent;
+        font: 1em/1 arial, sans-serif;
+      }
+      [type='range'], [type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+      }
+      [type='range']::-webkit-slider-runnable-track {
+        box-sizing: border-box;
+        border: none;
+        width: 5.5em;
+        height: 0.25em;
+        background: #ccc;
+      }
+      [type='range']::-moz-range-track {
+        box-sizing: border-box;
+        border: none;
+        width: 5.5em;
+        height: 0.25em;
+        background: #ccc;
+      }
+      [type='range']::-ms-track {
+        box-sizing: border-box;
+        border: none;
+        width: 5.5em;
+        height: 0.25em;
+        background: #ccc;
+      }
+      [type='range']::-webkit-slider-thumb {
+        margin-top: -0.625em;
+        box-sizing: border-box;
+        border: none;
+        width: 1.5em;
+        height: 1.5em;
+        border-radius: 50%;
+        background: #0051a3;
+      }
+      [type='range']::-moz-range-thumb {
+        box-sizing: border-box;
+        border: none;
+        width: 1.5em;
+        height: 1.5em;
+        border-radius: 50%;
+        background: #f90;
+      }
+      [type='range']::-ms-thumb {
+        margin-top: 0;
+        box-sizing: border-box;
+        border: none;
+        width: 1.5em;
+        height: 1.5em;
+        border-radius: 50%;
+        background: #f90;
+      }
+      [type='range']::-ms-tooltip {
+        display: none;
       }
       
       .slider:hover, .slider:active {
-          opacity: 1;
+        opacity: 1;
       }
       
-      .slider::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          appearance: none;
-          width: 35px;
-          height: 35px;
-          border-radius: 10px;
-          box-shadow: -3px 2px black;
-          background: #0051a3;
-          cursor: pointer;
-      }
-      
-      .slider::-moz-range-thumb {
-          width: 35px;
-          height: 35px;
-          border-radius: 10px;
-          box-shadow: -3px 2px black;
-          background: #0051a3;
-          cursor: pointer;
-      }
+
     </style>
-    
-    <div class="slidecontainer">
-      <input type="range" min=[[min]] max=[[max]] value="{{_value::input}}" class="slider" id="range">
+    <div class="container">
+      <div>
+        <div class="slidecontainer">
+          <input type="range" min=[[min]] max=[[max]] value="{{_value::input}}" id="range">
+        </div>
+      </div>
+      <div id="label"></div>
     </div>
-    <div id="label"></div>
     `;
   }
   
   _valueChanged(newValue, oldValue) {
-    if(newValue!=undefined){
+    if(newValue!=undefined && this.limits != undefined){
       let res = this.limits.filter(item => item.id == newValue);  
       this.$.label.innerHTML=res[0].name;
     }

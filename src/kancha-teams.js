@@ -3,7 +3,10 @@ import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 import '@vaadin/vaadin-date-picker/vaadin-date-picker.js';
 import '@vaadin/vaadin-combo-box/vaadin-combo-box.js';
 import '@polymer/paper-button/paper-button.js';
+import '@polymer/paper-tabs/paper-tabs.js';
+import '@polymer/paper-tabs/paper-tab.js';
 import './kancha-sensor.js';
+import './kancha-stats-visits.js';
 
 class KanchaTeams extends PolymerElement {
   static get template() {
@@ -35,22 +38,44 @@ class KanchaTeams extends PolymerElement {
           height: 34px;
         }
       </style>
-      <div class="container left">
-        <vaadin-combo-box id="teamSel" label="Teams" style="width:  100%;" required=true></vaadin-combo-box>
-      </div>
-      <div class="container left">
-        <vaadin-date-picker id="visitDate" label="Visit date" placeholder="Select" required=true>
-        </vaadin-date-picker>
-        <paper-icon-button icon="search" on-click="searchVisit"></paper-icon-button>
-      </div>
-      <div class="subcontainer left">
-        <kancha-sensor id="sensor" visible="[[visibleSensor]]"></kancha-sensor>
-      </div>
+      <paper-tabs selected="{{selected}}">
+        <paper-tab>Sensor</paper-tab>
+        <paper-tab>Medical Record</paper-tab>
+        <paper-tab>Coaches</paper-tab>
+      </paper-tabs>
+      <iron-pages selected="{{selected}}">
+        <div>
+          <div class="container left">
+            <vaadin-date-picker id="visitDate" style="width:40%;" required=true value={{dateVisit}}>
+            </vaadin-date-picker>
+            <vaadin-combo-box id="teamSel" style="width:45%;" required=true placeholder="Team" value={{teamName}}></vaadin-combo-box>
+            <paper-icon-button icon="search" on-click="searchVisit"></paper-icon-button>
+          </div>
+          <div class="subcontainer left">
+            <kancha-sensor id="sensor" visible="[[visibleSensor]]"></kancha-sensor>
+          </div>
+        </div>
+        <div>
+          <h2>Medical Record</h2>
+          <kancha-stats-visits team=[[teams]] id="statsVisits"></kancha-stats-visits>
+        </div>
+        <div>
+          <h2>Coaches Activities</h2>
+          <paper-icon-button icon="search" on-click="loadCoachesActivities"></paper-icon-button>
+          <table id="textPaperDialog">
+          </table>
+        </div>
+      </paper-tabs>
     `;
   }
   
   static get properties() {
     return {
+      selected:{ 
+        value: 0,
+        notify: true,
+        observer: '_tabChanged'
+      },
       userUid:{
         type: String,
         notify: true        
@@ -68,22 +93,39 @@ class KanchaTeams extends PolymerElement {
         type: Boolean,
         notify: true,
         value: false
-      }
+      },
+      today:{
+        type: Date,
+        notify: true
+      },
+      teamName: {
+        type: String,
+        notify: true
+      },
+      dateVisit: {
+        type: Date,
+        notify: true
+      },
     };
   }
-  
+  _tabChanged(newValue, oldValue){
+    if(newValue==1){
+      this.$.statsVisits.loadTeams(this.teams);
+    }
+  }
   loadlistAreas(){
     var self=this;
     db.settings({timestampsInSnapshots: true});
     this.teams=[];
-    db.collection("teams").where("status", "==", true)
+    db.collection("teams").where("status", "==", true).orderBy("buildingBlock","asc")
       .get()
       .then(function(querySnapshot) {
           querySnapshot.forEach(function(doc) {
               var item={};
-              item.value  = doc.id;
-              item.area   = doc.data().area;
-              item.label  = doc.data().name;
+              item.value            = doc.id;
+              item.area             = doc.data().area;
+              item.buildingBlock    = doc.data().buildingBlock;
+              item.label            = doc.data().name + " | " +  doc.data().buildingBlock;
               self.teams.push(item);
           });
           self.$.teamSel.items=self.teams;
@@ -95,7 +137,7 @@ class KanchaTeams extends PolymerElement {
   
   searchVisit(){
     var self=this;
-    if(self.$.teamSel.selectedItem){
+    if(self.$.teamSel.selectedItem && self.$.visitDate.value != "" ) {
       self.$.sensor.teamId=self.$.teamSel.selectedItem.value;
       self.$.sensor.teamName=self.$.teamSel.selectedItem.label;
       self.$.sensor.date=self.$.visitDate.value;
@@ -105,6 +147,51 @@ class KanchaTeams extends PolymerElement {
     }else{
       console.log('Sin datos');
     }
+  }
+  _loadlistReport(){
+    var today = new Date();
+    var table=this.$.textPaperDialog;
+    //today.setDate(today.getDate() - 5);
+    var dd = today.getDate();
+    var mm = today.getMonth()+1; //January is 0!
+    var yyyy = today.getFullYear();
+    
+    if(dd<10) {
+        dd = '0'+dd;
+    } 
+    if(mm<10) {
+        mm = '0'+mm;
+    } 
+    today = yyyy + '-' + mm + '-' + dd ;
+    
+    
+    db.settings({timestampsInSnapshots: true});
+    //this.itemReport=[];
+    db.collection("visits").where("date","==",today)
+      .get()
+      .then(function(querySnapshot) {
+          querySnapshot.forEach(function(doc) {
+              
+              var row   = table.insertRow(0);
+              var cell1 = row.insertCell(0);
+              var cell2 = row.insertCell(1);
+              cell1.innerHTML = "<b>" + doc.data().teamName + ":<b> " ;
+              cell2.innerHTML = doc.data().userEmail;
+          });
+      })
+      .catch(function(error) {
+          console.log("Error getting Visit Report: ", error);
+      });
+  }
+  
+  loadCoachesActivities(){
+    var table=this.$.textPaperDialog;
+    var tableRows = table.getElementsByTagName('tr');
+    var rowCount = tableRows.length;
+    if (rowCount>0){
+      table.innerHTML="";
+    }
+    this._loadlistReport();
   }
 }
 

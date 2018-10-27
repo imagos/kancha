@@ -104,6 +104,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <script src="https://www.gstatic.com/firebasejs/5.4.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/5.4.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/5.4.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/charts/loader.js" type="text/javascript"></script>
     <script>// Initialize Firebase
     var config = {
       apiKey: "AIzaSyBL6IieGZnz8Ur_rz7ST2VZWyv-LIqdvfI",
@@ -116,6 +117,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     firebase.initializeApp(config,{timestampsInSnapshots: true});
     var db = firebase.firestore();
     </script>
+    
+    <script type="text/javascript">
+
+      // Load the Visualization API and the corechart package.
+      google.charts.load('current', {'packages':['corechart']});
+
+      // Set a callback to run when the Google Visualization API is loaded.
+    </script>
+    
     <kancha-app></kancha-app>
     <noscript>
       Please enable JavaScript to view this website.

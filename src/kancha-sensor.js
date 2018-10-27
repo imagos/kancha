@@ -13,8 +13,10 @@ import '@polymer/paper-card/paper-card.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-toast/paper-toast.js';
 import '@polymer/paper-dialog/paper-dialog.js';
+import '@polymer/iron-icons/maps-icons.js';
 import './kancha-slider.js';
 import './kancha-tags-input.js';
+import './kancha-input-list.js';
 
 class KanchaSensor extends PolymerElement {
   static get template() {
@@ -108,12 +110,28 @@ class KanchaSensor extends PolymerElement {
           background-color: #fcf8e3;
           border-color: #faebcc;
         }    
-        .hashtag{
+        .width_15{
+          width: 15%
+        }
+        .width_65{
+          width: 65%
+        }
+        .width_80{
           width: 80%
         }
         .help_icon{
           width: 15%
         }
+        .hashtag{
+          width: 70%
+        }
+        .margin_auto{
+          margin: auto;
+        }
+        .vertical {
+          vertical-align: top;  
+        }
+        
         .favorite{
           background: #ee6e73 !important;
         }
@@ -159,58 +177,75 @@ class KanchaSensor extends PolymerElement {
           }
         }
       </style>
-      <div class="left card-content msg_basic msg_info" hidden$=[[hiddenMessage]]>
-        <div id='close' hidden$=[[hiddenMessage]] on-click="_closeMessage">X</div>
-        <p>[[message]]</p>
-      </div>
+      <paper-dialog id="pdMessage" opened$={{!hiddenMessage}}>
+        <h2>Kancha says:</h2>
+        <paper-dialog-scrollable>
+          [[message]]
+        </paper-dialog-scrollable>
+        <div class="buttons">
+          <paper-button dialog-confirm autofocus>Accept</paper-button>
+        </div>
+      </paper-dialog>
+      
       <div hidden$=[[!visibleSensor]]>
         <paper-card>
           <div class="card-content">
             <div class="left margin_bottom">
-              <div>
-                <div class="display_inline title_slider">
-                  <paper-icon-button icon="favorite-border" title="Help" on-tap="openTipsPulse" class="pulse favorite"></paper-icon-button>
-                  <br>
-                  <span class="title">Pulse:</span>
-                </div>
-                <div class="display_inline content_slider"><kancha-slider id="pulseSlider" limits=[[pulseRange]] _value={{pulseSlider}}></kancha-slider></div>
+              <div class="display_inline hashtag">
+                <vaadin-combo-box id="stageList" required=true></vaadin-combo-box>
               </div>
-              <br>
-              <div>
-                <div class="display_inline hashtag">
-                  <kancha-tags-input id="tagPulse" required=true title="Hashtag for Pulse (@event #pattern1 #pattern2)" placeholder="For example @synch #agileOnFire">
-                  </kancha-tags-input>
+              <div class="display_inline help_icon"> 
+                <paper-icon-button icon="help" title="Help for Stage" on-tap="openTipsStage" class="pulse"></paper-icon-button>
+              </div>
+            </div>
+            <div class="margin_auto">
+              <div class="display_inline help_icon vertical width_15">
+                <div>
+                  <paper-icon-button icon="favorite-border" title="Help" on-tap="openTipsPulse" class="pulse favorite"></paper-icon-button>
                 </div>
-                <div class="display_inline help_icon"> 
-                  <paper-icon-button icon="help" title="Help" on-tap="openTipsPulseSug" class="pulse"></paper-icon-button>
+                <div>
+                  <kancha-slider id="pulseSlider" limits=[[pulseRange]] _value={{pulseSlider}}></kancha-slider>
                 </div>
+              </div>
+              <div class="display_inline vertical width_80 margin_bottom">
+                <kancha-tags-input id="tagPulse" title="Pulse" required=true placeholder="context#element.situation">
+                </kancha-tags-input>
+              </div>
+            </div>
+
+            <div class="left margin_bottom">
+              <div class="display_inline vertical width_15"> 
+                <paper-icon-button icon="maps:local-hospital" title="Help" on-tap="openTipsIntervention" class="pulse favorite"></paper-icon-button>
+              </div>
+              <div class="display_inline width_80">
+                <kancha-tags-input id="intervention" required=true title="Interventions" placeholder="example: #training">
+                </kancha-tags-input>
               </div>
             </div>
             
-            <div class="left">
-              <div class="display_inline title_slider">
-                <paper-icon-button icon="cloud-queue" title="Help for Weather" on-tap="openTipsWeather" class="pulse favorite"></paper-icon-button>
-                <br>
-                <span class="title">Weather:</span>
-              </div>
-              <div class="display_inline content_slider"><kancha-slider id="weatherSlider" limits=[[weatherRange]] _value={{weatherSlider}}></kancha-slider></div>
-              <div>
-                <div class="display_inline hashtag">
-                  <kancha-tags-input id="tagWeather" required=true title="Hashtag for Weather " placeholder="For example #storming">
-                  </kancha-tags-input>
-                </div>
-                <div class="display_inline help_icon"> 
-                  <paper-icon-button icon="help" title="Help for Hashtags" on-tap="openTipsWeatherSug" class="pulse"></paper-icon-button>
-                </div>
-              </div>
-              
+            <div class="margin_auto">	
+            	<div class="display_inline help_icon vertical width_15">
+              	<div>
+              	  <paper-icon-button icon="cloud-queue" title="Help for Weather" on-tap="openTipsWeather" class="pulse favorite">
+              	  </paper-icon-button>
+              	</div>
+              	<div>
+              	  <kancha-slider id="weatherSlider" limits=[[weatherRange]] _value={{weatherSlider}}></kancha-slider>
+              	</div>
+            	</div>
+            	<div class="display_inline vertical width_80">
+                <kancha-tags-input id="tagWeather" required=true title="Environment" placeholder="element.situation">
+                </kancha-tags-input>          	    
+            	</div>
             </div>
+
           </div>
           
           <div class="card-actions" hidden$=[[hiddenBtnSubmit]]>
             <paper-button class="button_verify" on-click="saveVisit"  >Regitrar</paper-button>
             <paper-button class="button_cancel" on-click="reset">Cancelar</paper-button>
           </div>
+          
         </paper-card>
         <paper-toast id="toastConfirmation" text="Visit registered">
         </paper-toast>
@@ -260,12 +295,16 @@ class KanchaSensor extends PolymerElement {
       pulseRange: {
         type:   Array,
         notify: true,
-        value:  [{id: 1, name: 'Muerto'},{id: 2, name: 'En coma'},{id: 3, name: 'Intermitente'},{id: 4, name: 'Saludable'},{id: 5, name: 'Taquicardia'}]
+//        value:  [{id: 1, name: 'Muerto'},{id: 2, name: 'En coma'},{id: 3, name: 'Intermitente'},{id: 4, name: 'Saludable'},{id: 5, name: 'Taquicardia'}]
       },
       weatherRange: {
         type:   Array,
         notify: true,
-        value:  [{id: 1, name: 'Cataclismo'},{id: 2, name: 'Tormentoso'},{id: 3, name: 'Lluvioso'},{id: 4, name: 'Nublado'},{id: 5, name: 'Soleado'}]
+//        value:  [{id: 1, name: 'Cataclismo'},{id: 2, name: 'Tormentoso'},{id: 3, name: 'Lluvioso'},{id: 4, name: 'Nublado'},{id: 5, name: 'Soleado'}]
+      },
+      stageRange: {
+        type:   Array,
+        notify: true,
       },
       pulseSuggestions: {
         type:   Array,
@@ -319,6 +358,8 @@ class KanchaSensor extends PolymerElement {
     this._loadlistWeather();
     this._loadlistPulse();
     this._loadSuggetions();
+    this._loadStage();
+    this._loadIntervention();
   }
   
   _changePulse(newValue,oldValue){
@@ -333,9 +374,11 @@ class KanchaSensor extends PolymerElement {
           
     this.$.tagPulse.tags        = [];
     this.$.tagWeather.tags      = [];
+    this.$.intervention.tags      = [];
     this.idVisit="";
     this.corrVisit=0;
   }
+  
   getVisit(){
     this.cleanSensor();
     var self=this;
@@ -358,6 +401,12 @@ class KanchaSensor extends PolymerElement {
           self.$.tagPulse.tags        = data.tagPulse;
           self.$.tagWeather.tags      = data.tagWeather;
           
+          self.$.tagWeather.tags      = data.tagWeather;
+          
+          //TODO Get Stage and Intervention
+          self.$.stageList.value = data.stage;
+          self.$.tagWeather.tags      = data.intervention;
+          
           self.corrVisit = data.corrVisit;
           self.idVisit=data.id;
           existsDocuments=true;
@@ -368,6 +417,7 @@ class KanchaSensor extends PolymerElement {
       })
       .catch(function(error) {
         self.message="Error getting documents: "+ error;
+        console.info("Error getting documents: "+ error);
       });
       if(!existsDocuments){
         self.message="Tú serás el primero en registrar la visita. Happy coaching!";    
@@ -382,6 +432,12 @@ class KanchaSensor extends PolymerElement {
   _closeMessage(){
     this.message="";
   }
+  _hiddenMessageChanged(newValue, oldValue){
+    console.info(newValue);
+    if(newValue){
+      this.message="";
+    }
+  }
   _messageChanged(newValue, oldValue){
     if(newValue.length==0){
       this.hiddenMessage=true;  
@@ -395,17 +451,26 @@ class KanchaSensor extends PolymerElement {
   saveVisit(){
     //Validar que los datos iniciales se encuentren llenos
     var self=this;
-    
+    if(self.$.stageList.selectedItem.value == null || self.$.stageList.selectedItem.value == ""){
+      self.$.stageList="Faltan Seleccionar el Stage";
+      return;
+    }    
     if(self.$.tagPulse.tags == null || self.$.tagPulse.tags.length==0){
-      self.message="Faltan ingresar los hashtags";
+      self.message="Faltan ingresar detalles en el Pulse";
       self.$.tagPulse.focus();
       return;
     }
-    if(self.$.tagWeather.tags == null || self.$.tagWeather.tags.length==0){
-      self.message="Faltan ingresar los hashtags";
-      self.$.tagWeather.focus();
+    if(self.$.intervention.tags == null || self.$.intervention.tags.length==0){
+      self.message="Faltan ingresar los Intervention";
+      self.$.tagPulse.focus();
       return;
     }
+    // if(self.$.tagWeather.tags == null || self.$.tagWeather.tags.length==0){
+    //   self.message="Faltan ingresar los hashtags en el Weather";
+    //   self.$.tagWeather.focus();
+    //   return;
+    // }
+
     self.corrVisit++;
     db.collection("visits").add({
         teamId:     self.teamId,
@@ -417,15 +482,18 @@ class KanchaSensor extends PolymerElement {
         tagWeather: self.$.tagWeather.tags,
         userUid:    self.userUid,
         userEmail:  self.userEmail,
+        stage:      self.$.stageList.selectedItem.value,
+        intervention: self.$.intervention.tags,
         created:    firebase.firestore.Timestamp.now(),
         corrVisit:  self.corrVisit
     })
     .then(function() {
       self.$.toastConfirmation.open();
       self.message="Visita registrada con éxito!";
-      //bloquear campos
+      //TODO bloquear campos
     })
     .catch(function(error) {
+      console.error("Error al registrar su visita: Details: " + error);
       self.message="Error al registrar su visita: Details: " + error;
     });
   }
@@ -507,6 +575,48 @@ class KanchaSensor extends PolymerElement {
       });
   }
   
+  _loadStage(){
+    var self=this;
+    db.settings({timestampsInSnapshots: true});
+    this.stageRange=[];
+    db.collection("tuckManRange")
+      .get()
+      .then(function(querySnapshot) {
+          querySnapshot.forEach(function(doc) {
+              var item={};
+              item.value  = doc.data().name;
+              item.label  = doc.data().name;
+              item.description  = doc.data().description;
+              self.stageRange.push(item);
+          });
+          self.$.stageList.items=self.stageRange;
+      })
+      .catch(function(error) {
+          console.log("Error getting Stage Range: ", error);
+      });
+  }
+  
+  _loadIntervention(){
+    var self=this;
+    db.settings({timestampsInSnapshots: true});
+    this.interventionRange=[];
+    db.collection("interventionRange")
+      .get()
+      .then(function(querySnapshot) {
+          querySnapshot.forEach(function(doc) {
+              var item={};
+              item.value  = doc.data().name;
+              item.label  = doc.data().name;
+              item.description  = doc.data().description;
+              self.interventionRange.push(item);
+          });
+          self.$.intervention.options=self.interventionRange;
+      })
+      .catch(function(error) {
+          console.log("Error getting Stage Range: ", error);
+      });
+  }
+  
   _cleanTableTips(array){
     this.$.pdTips.open();
     var table=this.$.textPaperDialog;
@@ -519,7 +629,12 @@ class KanchaSensor extends PolymerElement {
       var row = table.insertRow(0);
       var cell1 = row.insertCell(0);
       var cell2 = row.insertCell(1);
-      cell1.innerHTML = "<b>" + element.name + ":<b> " ;
+      if(element.name !=null && element.name!=undefined){
+        cell1.innerHTML = "<b>" + element.name + ":<b> " ;
+      }else{
+        cell1.innerHTML = "<b>" + element.label + ":<b> " ;  
+      }
+      
       cell2.innerHTML = element.description;
     });
   }
@@ -535,6 +650,12 @@ class KanchaSensor extends PolymerElement {
   }
   openTipsPulseSug(){
     this._cleanTableTips(this.pulseSuggestions);
+  }
+  openTipsStage(){
+    this._cleanTableTips(this.stageRange);
+  }
+  openTipsIntervention(){
+    this._cleanTableTips(this.interventionRange);
   }
 }
 

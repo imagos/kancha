@@ -87,7 +87,7 @@ class KanchaApp extends PolymerElement {
           <div style="display:table">
             <img id="imgProfile" class="avatar" src="{{userPicture}}">
           </div>
-          <paper-icon-button icon="receipt" id="mReport" title="Report" on-tap="viewReport"  ></paper-icon-button>
+          <paper-icon-button icon="receipt" id="mReport" title="Visits" on-tap="viewReport"  ></paper-icon-button>
           <paper-icon-button icon="exit-to-app" id="mExit"   title="Exit"   on-tap="signOut"  ></paper-icon-button>
         </app-toolbar>
         
@@ -96,7 +96,7 @@ class KanchaApp extends PolymerElement {
       </div>
       
       <paper-dialog id="pdReport">
-        <h2>Report</h2>
+        <h2>Visits of the day</h2>
         <paper-dialog-scrollable>
           <table id="textPaperDialog">
           </table>
