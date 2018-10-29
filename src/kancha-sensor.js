@@ -15,6 +15,7 @@ import '@polymer/paper-toast/paper-toast.js';
 import '@polymer/paper-dialog/paper-dialog.js';
 import '@polymer/iron-icons/maps-icons.js';
 import './kancha-slider.js';
+import './kancha-slider-h.js';
 import './kancha-tags-input.js';
 import './kancha-input-list.js';
 
@@ -119,6 +120,12 @@ class KanchaSensor extends PolymerElement {
         .width_80{
           width: 80%
         }
+        .width_90{
+          width: 90%
+        }
+        .width_5{
+          width: 5%
+        }
         .help_icon{
           width: 15%
         }
@@ -139,6 +146,14 @@ class KanchaSensor extends PolymerElement {
           margin-bottom: 17px;
         }
         
+        .dots:after {
+          content: '\\2807';
+          font-size: 2em;
+        }
+        .card-content-padding{
+          padding: 2px !important;
+          margin: 1px !important;
+        }
         .pulse {
           border-radius: 50%;
           background: #26a69a;;
@@ -177,68 +192,66 @@ class KanchaSensor extends PolymerElement {
           }
         }
       </style>
-      <paper-dialog id="pdMessage" opened$={{!hiddenMessage}}>
+      <paper-dialog id="pdMessage" modal=true>
         <h2>Kancha says:</h2>
         <paper-dialog-scrollable>
           [[message]]
         </paper-dialog-scrollable>
         <div class="buttons">
-          <paper-button dialog-confirm autofocus>Accept</paper-button>
+          <paper-button dialog-confirm autofocus on-tap="_closeMessage" >Accept</paper-button>
         </div>
       </paper-dialog>
       
       <div hidden$=[[!visibleSensor]]>
         <paper-card>
-          <div class="card-content">
-            <div class="left margin_bottom">
-              <div class="display_inline hashtag">
+          <div class="card-content card-content-padding">
+            <div class="margin_auto">
+              <div class="display_inline width_90">
                 <vaadin-combo-box id="stageList" required=true></vaadin-combo-box>
               </div>
-              <div class="display_inline help_icon"> 
-                <paper-icon-button icon="help" title="Help for Stage" on-tap="openTipsStage" class="pulse"></paper-icon-button>
+              <div class="display_inline width_5"> 
+                <div class="dots" on-tap="openTipsStage"></div>
               </div>
             </div>
             <div class="margin_auto">
-              <div class="display_inline help_icon vertical width_15">
-                <div>
-                  <paper-icon-button icon="favorite-border" title="Help" on-tap="openTipsPulse" class="pulse favorite"></paper-icon-button>
-                </div>
-                <div>
-                  <kancha-slider id="pulseSlider" limits=[[pulseRange]] _value={{pulseSlider}}></kancha-slider>
-                </div>
+              <div class="display_inline vertical width_90">
+                <kancha-slider-h id="pulseSlider" limits=[[pulseRange]] _value={{pulseSlider}}></kancha-slider-h>
               </div>
-              <div class="display_inline vertical width_80 margin_bottom">
+              <div class="display_inline width_5"> 
+                <div class="dots" on-tap="openTipsPulse"></div>
+              </div>
+            </div>
+            <div class="margin_auto">
+              <div class="display_inline vertical width_90">
                 <kancha-tags-input id="tagPulse" title="Pulse" required=true placeholder="context#element.situation">
                 </kancha-tags-input>
               </div>
             </div>
 
-            <div class="left margin_bottom">
-              <div class="display_inline vertical width_15"> 
-                <paper-icon-button icon="maps:local-hospital" title="Help" on-tap="openTipsIntervention" class="pulse favorite"></paper-icon-button>
-              </div>
-              <div class="display_inline width_80">
+            <div class="margin_auto">
+              <div class="display_inline width_90">
                 <kancha-tags-input id="intervention" required=true title="Interventions" placeholder="example: #training">
                 </kancha-tags-input>
+              </div>
+              <div class="display_inline vertical width_5"> 
+                <div class="dots" on-tap="openTipsIntervention"></div>
               </div>
             </div>
             
             <div class="margin_auto">	
-            	<div class="display_inline help_icon vertical width_15">
-              	<div>
-              	  <paper-icon-button icon="cloud-queue" title="Help for Weather" on-tap="openTipsWeather" class="pulse favorite">
-              	  </paper-icon-button>
-              	</div>
-              	<div>
-              	  <kancha-slider id="weatherSlider" limits=[[weatherRange]] _value={{weatherSlider}}></kancha-slider>
-              	</div>
+            	<div class="display_inline vertical width_90">
+              	 <kancha-slider-h id="weatherSlider" limits=[[weatherRange]] _value={{weatherSlider}} icon="cloud"></kancha-slider-h>
             	</div>
-            	<div class="display_inline vertical width_80">
+              <div class="display_inline vertical width_5"> 
+                <div class="dots" on-tap="openTipsWeather"></div>
+              </div>
+            </div>
+            <div class="margin_auto">
+            	<div class="display_inline vertical width_90">
                 <kancha-tags-input id="tagWeather" required=true title="Environment" placeholder="element.situation">
                 </kancha-tags-input>          	    
             	</div>
             </div>
-
           </div>
           
           <div class="card-actions" hidden$=[[hiddenBtnSubmit]]>
@@ -314,15 +327,16 @@ class KanchaSensor extends PolymerElement {
         type:   Array,
         notify: true,
       },
-      hiddenMessage:{
+      openMessage:{
         type:   Boolean,
         notify: true,
-        value:  true
+        value:  false
       },
       message:{
         type:   String,
         notify: true,
-        observer: '_messageChanged'
+        observer: '_messageChanged',
+        value: ""
       },
       idVisit:{
         type:   String,
@@ -403,9 +417,8 @@ class KanchaSensor extends PolymerElement {
           
           self.$.tagWeather.tags      = data.tagWeather;
           
-          //TODO Get Stage and Intervention
-          self.$.stageList.value = data.stage;
-          self.$.tagWeather.tags      = data.intervention;
+          self.$.stageList.value      = data.stage;
+          self.$.intervention.tags    = data.intervention;
           
           self.corrVisit = data.corrVisit;
           self.idVisit=data.id;
@@ -413,7 +426,7 @@ class KanchaSensor extends PolymerElement {
           self.message="Ajá! Tenemos una visita registrada de " + data.userEmail; + ". Si tienes algo que aportar es el momento.";    
           self.hiddenBtnSubmit=true;
         });
-
+        
       })
       .catch(function(error) {
         self.message="Error getting documents: "+ error;
@@ -432,20 +445,10 @@ class KanchaSensor extends PolymerElement {
   _closeMessage(){
     this.message="";
   }
-  _hiddenMessageChanged(newValue, oldValue){
-    console.info(newValue);
-    if(newValue){
-      this.message="";
-    }
-  }
   _messageChanged(newValue, oldValue){
-    if(newValue.length==0){
-      this.hiddenMessage=true;  
-    }else{
-      this.hiddenMessage=false;  
+    if(newValue.length>0){
+      this.$.pdMessage.open();
     }
-    //setTimeout(function(){self.hiddenMessage=true;},7000);
-    //self.message="";
   }
   
   saveVisit(){
@@ -491,6 +494,7 @@ class KanchaSensor extends PolymerElement {
       self.$.toastConfirmation.open();
       self.message="Visita registrada con éxito!";
       //TODO bloquear campos
+      self.hiddenBtnSubmit=true;
     })
     .catch(function(error) {
       console.error("Error al registrar su visita: Details: " + error);

@@ -29,7 +29,7 @@ class KanchaTeams extends PolymerElement {
           display: block;
           margin: 0px 0px 2px 0px;
           padding: 0px 0px 2px 0px;
-          width: 95%;
+          width: 99%;
         }
         paper-icon-button { 
           background-color: #4285f4;
@@ -52,7 +52,7 @@ class KanchaTeams extends PolymerElement {
             <paper-icon-button icon="search" on-click="searchVisit"></paper-icon-button>
           </div>
           <div class="subcontainer left">
-            <kancha-sensor id="sensor" visible="[[visibleSensor]]"></kancha-sensor>
+            <kancha-sensor id="sensor" visible-sensor="{{visibleSensor}}"></kancha-sensor>
           </div>
         </div>
         <div>
@@ -100,13 +100,19 @@ class KanchaTeams extends PolymerElement {
       },
       teamName: {
         type: String,
-        notify: true
+        notify: true,
+        observer: '_sensorChanged',
       },
       dateVisit: {
         type: Date,
-        notify: true
+        notify: true,
+        observer: '_sensorChanged',
       },
     };
+  }
+  _sensorChanged(newValue,oldValue){
+    console.info('prueba');
+    this.visibleSensor=false;
   }
   _tabChanged(newValue, oldValue){
     if(newValue==1){
