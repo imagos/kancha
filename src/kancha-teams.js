@@ -52,7 +52,8 @@ class KanchaTeams extends PolymerElement {
             <paper-icon-button icon="search" on-click="searchVisit"></paper-icon-button>
           </div>
           <div class="subcontainer left">
-            <kancha-sensor id="sensor" visible-sensor="{{visibleSensor}}"></kancha-sensor>
+            <kancha-sensor id="sensor" visible-sensor="{{visibleSensor}}">
+            </kancha-sensor>
           </div>
         </div>
         <div>
@@ -111,12 +112,17 @@ class KanchaTeams extends PolymerElement {
     };
   }
   _sensorChanged(newValue,oldValue){
-    console.info('prueba');
     this.visibleSensor=false;
   }
   _tabChanged(newValue, oldValue){
     if(newValue==1){
+      this.$.sensor.loadStage();
+      this.$.sensor.loadlistWeather();
+      this.$.sensor.loadlistPulse();
       this.$.statsVisits.loadTeams(this.teams);
+      this.$.statsVisits.pulseRange = this.$.sensor.pulseRange;
+      this.$.statsVisits.weatherRange = this.$.sensor.weatherRange;
+      this.$.statsVisits.stageRange = this.$.sensor.stageRange;
     }
   }
   loadlistAreas(){

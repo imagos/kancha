@@ -308,16 +308,17 @@ class KanchaSensor extends PolymerElement {
       pulseRange: {
         type:   Array,
         notify: true,
-//        value:  [{id: 1, name: 'Muerto'},{id: 2, name: 'En coma'},{id: 3, name: 'Intermitente'},{id: 4, name: 'Saludable'},{id: 5, name: 'Taquicardia'}]
+        reflectToAttribute: true,
       },
       weatherRange: {
         type:   Array,
         notify: true,
-//        value:  [{id: 1, name: 'Cataclismo'},{id: 2, name: 'Tormentoso'},{id: 3, name: 'Lluvioso'},{id: 4, name: 'Nublado'},{id: 5, name: 'Soleado'}]
+        reflectToAttribute: true,
       },
       stageRange: {
         type:   Array,
         notify: true,
+        reflectToAttribute: true,
       },
       pulseSuggestions: {
         type:   Array,
@@ -369,10 +370,10 @@ class KanchaSensor extends PolymerElement {
   
   ready(){
     super.ready();
-    this._loadlistWeather();
-    this._loadlistPulse();
+    this.loadlistWeather();
+    this.loadlistPulse();
+    this.loadStage();
     this._loadSuggetions();
-    this._loadStage();
     this._loadIntervention();
   }
   
@@ -508,7 +509,7 @@ class KanchaSensor extends PolymerElement {
     }
   }
   
-  _loadlistPulse(){
+  loadlistPulse(){
     var self=this;
     db.settings({timestampsInSnapshots: true});
     this.pulseRange=[];
@@ -529,7 +530,7 @@ class KanchaSensor extends PolymerElement {
       });
   }
   
-  _loadlistWeather(){
+  loadlistWeather(){
     var self=this;
     db.settings({timestampsInSnapshots: true});
     this.weatherRange=[];
@@ -579,7 +580,7 @@ class KanchaSensor extends PolymerElement {
       });
   }
   
-  _loadStage(){
+  loadStage(){
     var self=this;
     db.settings({timestampsInSnapshots: true});
     this.stageRange=[];
@@ -591,6 +592,7 @@ class KanchaSensor extends PolymerElement {
               item.value  = doc.data().name;
               item.label  = doc.data().name;
               item.description  = doc.data().description;
+              item.id     = doc.data().value;
               self.stageRange.push(item);
           });
           self.$.stageList.items=self.stageRange;

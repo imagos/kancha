@@ -13,9 +13,30 @@ class KanchaStatsVisits extends PolymerElement {
         notify: true,
         value:[]
       },
+      results: {
+        type: Array,
+        notify: true,
+        value:[]
+      },
+      objChart: {
+        type: Object,
+        notify: true,
+      },
       teamName: {
         type: String,
         notify: true
+      },
+      pulseRange: {
+        type:   Array,
+        notify: true,
+      },
+      weatherRange: {
+        type:   Array,
+        notify: true,
+      },
+      stageRange: {
+        type:   Array,
+        notify: true,
       },
     };
   }
@@ -29,16 +50,22 @@ class KanchaStatsVisits extends PolymerElement {
           width: 34px;
           height: 34px;
         }
+        .container{
+          width: 100%;
+          margin: 0px !important;
+          padding: 0px !important;
+          tex-align: center;
+        }
     </style>
-    
-    <vaadin-date-picker id="visitStartDate" style="width:40%;" label="Start Date" required=true value={{startDate}}>
-    </vaadin-date-picker>
-    <vaadin-date-picker id="visitFinishDate" style="width:40%;" label="Finish Date" required=true value={{finishDate}}>
-    </vaadin-date-picker>
-    <vaadin-combo-box label="Team" id="teamSel" style="width:70%;" required=true placeholder="Team" value={{teamName}}></vaadin-combo-box>
-    <paper-icon-button icon="search" on-click="_drawChart"></paper-icon-button>
-    
-    <div id="chartTime"></div>
+    <div class="container">
+      <vaadin-date-picker id="visitStartDate" style="width:40%;" label="Start Date" required=true value={{startDate}}>
+      </vaadin-date-picker>
+      <vaadin-date-picker id="visitFinishDate" style="width:40%;" label="Finish Date" required=true value={{finishDate}}>
+      </vaadin-date-picker>
+      <vaadin-combo-box label="Team" id="teamSel" style="width:70%;" required=true placeholder="Team" value={{teamName}}></vaadin-combo-box>
+      <paper-icon-button icon="search" on-click="_drawChart"></paper-icon-button>
+      <div id="chartTime"></div>
+    </div>
     `;
   }
     loadTeams(teams){
@@ -46,74 +73,101 @@ class KanchaStatsVisits extends PolymerElement {
     }
     _drawChart() {
         var self=this;
-        google.charts.load('current', {'packages':['corechart']});
-        google.charts.setOnLoadCallback(this.drawChart);
+        google.charts.load('current', {packages: ['corechart', 'line']});
+        //google.charts.setOnLoadCallback(this.drawChart);
         var data = new google.visualization.DataTable();
         data.addColumn('datetime', 'Date');
         data.addColumn('number', 'Pulse');
+        data.addColumn({type: 'string', role: 'tooltip'});
         data.addColumn('number', 'Environment');
-
+        data.addColumn({type: 'string', role: 'tooltip'});
         db.settings({timestampsInSnapshots: true});
         var arrayData=[];
-        db.collection("visits").where("teamId", "==", self.$.teamSel.selectedItem.value).where("date", ">=", self.startDate).where("date", "<=", self.finishDate).orderBy("date","asc")
+        var _tooltipPulse='';
+        var _tooltipWeather='';
+        self.results=[];
+        db.collection("visits").where("teamId", "==", self.$.teamSel.selectedItem.value).where("date", ">=", self.startDate).where("date", "<=", self.finishDate).orderBy("date","asc").orderBy("corrVisit","asc")
           .get()
           .then(function(querySnapshot) {
             querySnapshot.forEach(function(doc) {
               // doc.data() is never undefined for query doc snapshots
               var info=doc.data();
-            //   var _date=
               var row=[];
+              //_tooltip='Pulse: ' + info.tagPulse.toString() + String.fromCharCode(10);
+              _tooltipPulse='Date: ' + info.date + ' | N°' + info.corrVisit + String.fromCharCode(10) + 'Pulse: ' + self._getNameArray(1,info.pulse) + String.fromCharCode(10) + 'Tags:' + info.tagPulse  + String.fromCharCode(10);
+              _tooltipPulse=_tooltipPulse + 'Intervention: ' + info.intervention ;
+              _tooltipWeather='Date: ' + info.date + ' | N°' + info.corrVisit + String.fromCharCode(10) +'Environment: ' +self._getNameArray(2,info.weather) + String.fromCharCode(10) +'Tags:' + info.tagWeather;
               row.push(new Date(info.date.substr(0, 4),info.date.substr(5, 2),info.date.substr(8, 2),info.corrVisit));
-              row.push(parseInt(info.pulse));
-              row.push(parseInt(info.weather));
+              row.push(self._getValue4Stage(parseInt(info.pulse),info.stage));
+              row.push(_tooltipPulse);
+              row.push(self._getValue4Stage(parseInt(info.weather),info.stage));
+              row.push(_tooltipWeather);
               arrayData.push(row);
-              
-            //   self.pulseSlider    = data.pulse;
-            //   self.weatherSlider  = data.weather;
-    
-            //   self.$.pulseSlider._value   = data.pulse;
-            //   self.$.weatherSlider._value = data.weather;
-              
-            //   self.$.tagPulse.tags        = data.tagPulse;
-            //   self.$.tagWeather.tags      = data.tagWeather;
-              
-            //   self.$.tagWeather.tags      = data.tagWeather;
-              
-            //   //TODO Get Stage and Intervention
-            //   self.$.stageList.value = data.stage;
-            //   self.$.tagWeather.tags      = data.intervention;
-              
-            //   self.corrVisit = data.corrVisit;
-            //   self.idVisit=data.id;
-              
-              
             });
             data.addRows(arrayData);
+            self.results=arrayData;
+            
             var chart = new google.visualization.LineChart(self.$.chartTime);
             chart.draw(data, self._getOptions());    
-          })
-          .catch(function(error) {
-            console.info("Error getting documents: "+ error);
           });
+          // .catch(function(error) {
+          //   console.info("Error getting documents: "+ error);
+          // });
+    }
+    graphSelectHandler() {
+      var selectedItem = this.chart.getSelection()[0];
+      if (selectedItem) {
+        var topping = this.results.getValue(selectedItem.row, 0);
+        alert('The user selected ' + topping);
+      }
+    }
+    //1==> pulseRange | 2==> weatherRange
+    _getNameArray(_type,_value){
+      let _obj={};
+      if(_type==1){
+        _obj=this.pulseRange.find(_obj => _obj.id === _value);
+      }else if(_type==2){
+        _obj=this.weatherRange.find(_obj => _obj.id === _value);
+      }
+      if(_obj===undefined){
+        return '';
+      }
+      return _obj.name;
+    }
+    //Get stage
+    _getValue4Stage(_value, _stage){
+      var _numStage=0;
+      var _obj=this.stageRange.find(item => item.value === _stage);
+      _numStage=parseInt(_obj.id);
+      return _value*_numStage;
     }
     
+    //TODO Deprecated
+    _array2Paragraph(_objArray){
+      var _paragraph='';
+      if(_objArray != undefined && _objArray.length>0){
+        _paragraph=_objArray.toString();
+        _paragraph=_paragraph.replace(/,/g,String.fromCharCode(10));
+      }
+      return _paragraph;
+    }
+    //
     _getOptions(){
       var self=this;
       var options = {
-        width: 900,
-        height: 500,
-        legend: {position: 'none'},
-        enableInteractivity: false,
-        chartArea: {
-          width: '85%'
+        height:500,
+        colors: ['green', 'purple'],
+        pointSize: 30,
+        series: {
+              0: { pointShape: 'circle' },
+              1: { pointShape: 'triangle' }
+          },
+        vAxis: {
+          title: 'Stage',
         },
         hAxis: {
-          viewWindow: {
-            min: new Date(self.startDate.substr(0,4), self.startDate.substr(5,2), self.startDate.substr(8,2), 0),
-            max: new Date(self.finishDate.substr(0,4), self.finishDate.substr(5,2), self.finishDate.substr(8,2), 23)
-          },
+          title: 'Time',
           gridlines: {
-            count: -1,
             units: {
               days: {format: ['MMM dd']},
               hours: {format: ['HH:mm', 'ha']},
