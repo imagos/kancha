@@ -120,7 +120,7 @@ class KanchaApp extends PolymerElement {
       nameApp: {
         type: String,
         notify: true,
-        value: 'Kancha BBVA'
+        value: 'Kancha'
       },
       // Is Authenticated by Google?
       loggedIn: {

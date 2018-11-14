@@ -97,7 +97,7 @@ class KanchaStatsVisits extends PolymerElement {
               _tooltipPulse='Date: ' + info.date + ' | N°' + info.corrVisit + String.fromCharCode(10) + 'Pulse: ' + self._getNameArray(1,info.pulse) + String.fromCharCode(10) + 'Tags:' + info.tagPulse  + String.fromCharCode(10);
               _tooltipPulse=_tooltipPulse + 'Intervention: ' + info.intervention ;
               _tooltipWeather='Date: ' + info.date + ' | N°' + info.corrVisit + String.fromCharCode(10) +'Environment: ' +self._getNameArray(2,info.weather) + String.fromCharCode(10) +'Tags:' + info.tagWeather;
-              row.push(new Date(info.date.substr(0, 4),info.date.substr(5, 2),info.date.substr(8, 2),info.corrVisit));
+              row.push(new Date(info.date.substr(0, 4),parseInt(info.date.substr(5, 2)-1),info.date.substr(8, 2),info.corrVisit));
               row.push(self._getValue4Stage(parseInt(info.pulse),info.stage));
               row.push(_tooltipPulse);
               row.push(self._getValue4Stage(parseInt(info.weather),info.stage));
@@ -170,15 +170,8 @@ class KanchaStatsVisits extends PolymerElement {
           gridlines: {
             units: {
               days: {format: ['MMM dd']},
-              hours: {format: ['HH:mm', 'ha']},
             }
           },
-          minorGridlines: {
-            units: {
-              hours: {format: ['hh:mm:ss a', 'ha']},
-              minutes: {format: ['HH:mm a Z', ':mm']}
-            }
-          }
         }
       };
       return options;

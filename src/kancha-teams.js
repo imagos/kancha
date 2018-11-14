@@ -6,6 +6,7 @@ import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-tabs/paper-tabs.js';
 import '@polymer/paper-tabs/paper-tab.js';
 import './kancha-sensor.js';
+import './kancha-coach.js';
 import './kancha-stats-visits.js';
 
 class KanchaTeams extends PolymerElement {
@@ -57,14 +58,10 @@ class KanchaTeams extends PolymerElement {
           </div>
         </div>
         <div>
-          <h2>Medical Record</h2>
-          <kancha-stats-visits team=[[teams]] id="statsVisits"></kancha-stats-visits>
+          <kancha-stats-visits teams=[[teams]] id="statsVisits"></kancha-stats-visits>
         </div>
         <div>
-          <h2>Coaches Activities</h2>
-          <paper-icon-button icon="search" on-click="loadCoachesActivities"></paper-icon-button>
-          <table id="textPaperDialog">
-          </table>
+          <kancha-coach teams=[[teams]] coaches=[[coaches]] id="kanchaCoach"></kancha-coach>
         </div>
       </paper-tabs>
     `;
@@ -105,24 +102,53 @@ class KanchaTeams extends PolymerElement {
         observer: '_sensorChanged',
       },
       dateVisit: {
-        type: Date,
+        type: String,
         notify: true,
         observer: '_sensorChanged',
       },
     };
   }
+  ready(){
+    super.ready();
+    this.$.visitDate.value=this._getToday();
+  }
+  
   _sensorChanged(newValue,oldValue){
     this.visibleSensor=false;
   }
+  _getToday(){
+    var today = new Date();
+    var dd = today.getDate();
+    var mm = today.getMonth()+1; //January is 0!
+    var yyyy = today.getFullYear();
+    
+    if(dd<10) {
+        dd = '0'+dd
+    } 
+    
+    if(mm<10) {
+        mm = '0'+mm
+    } 
+    
+    today = yyyy + '-' + mm + '-' + dd;
+    this.dateVisit=today;
+    return today;
+  }
+  
   _tabChanged(newValue, oldValue){
-    if(newValue==1){
+    if(newValue==0){
       this.$.sensor.loadStage();
       this.$.sensor.loadlistWeather();
       this.$.sensor.loadlistPulse();
+    } else if(newValue == 1){
       this.$.statsVisits.loadTeams(this.teams);
       this.$.statsVisits.pulseRange = this.$.sensor.pulseRange;
       this.$.statsVisits.weatherRange = this.$.sensor.weatherRange;
       this.$.statsVisits.stageRange = this.$.sensor.stageRange;
+    } else if(newValue == 2){
+      this.$.kanchaCoach.loadTeams(this.teams,this.dateVisit);
+      this.$.kanchaCoach.loadlistWeather();
+      this.$.kanchaCoach.loadlistPulse();
     }
   }
   loadlistAreas(){
@@ -153,57 +179,13 @@ class KanchaTeams extends PolymerElement {
       self.$.sensor.teamId=self.$.teamSel.selectedItem.value;
       self.$.sensor.teamName=self.$.teamSel.selectedItem.label;
       self.$.sensor.date=self.$.visitDate.value;
+      console.info(self.$.visitDate.value);
       self.$.sensor.userUid=self.userUid;
       self.$.sensor.userEmail=self.userEmail;
       self.$.sensor.getVisit();
     }else{
       console.log('Sin datos');
     }
-  }
-  _loadlistReport(){
-    var today = new Date();
-    var table=this.$.textPaperDialog;
-    //today.setDate(today.getDate() - 5);
-    var dd = today.getDate();
-    var mm = today.getMonth()+1; //January is 0!
-    var yyyy = today.getFullYear();
-    
-    if(dd<10) {
-        dd = '0'+dd;
-    } 
-    if(mm<10) {
-        mm = '0'+mm;
-    } 
-    today = yyyy + '-' + mm + '-' + dd ;
-    
-    
-    db.settings({timestampsInSnapshots: true});
-    //this.itemReport=[];
-    db.collection("visits").where("date","==",today)
-      .get()
-      .then(function(querySnapshot) {
-          querySnapshot.forEach(function(doc) {
-              
-              var row   = table.insertRow(0);
-              var cell1 = row.insertCell(0);
-              var cell2 = row.insertCell(1);
-              cell1.innerHTML = "<b>" + doc.data().teamName + ":<b> " ;
-              cell2.innerHTML = doc.data().userEmail;
-          });
-      })
-      .catch(function(error) {
-          console.log("Error getting Visit Report: ", error);
-      });
-  }
-  
-  loadCoachesActivities(){
-    var table=this.$.textPaperDialog;
-    var tableRows = table.getElementsByTagName('tr');
-    var rowCount = tableRows.length;
-    if (rowCount>0){
-      table.innerHTML="";
-    }
-    this._loadlistReport();
   }
 }
 
