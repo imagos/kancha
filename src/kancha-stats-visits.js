@@ -94,11 +94,21 @@ class KanchaStatsVisits extends PolymerElement {
               var info=doc.data();
               var row=[];
               //_tooltip='Pulse: ' + info.tagPulse.toString() + String.fromCharCode(10);
-              _tooltipPulse='Date: ' + info.date + ' | N°' + info.corrVisit + String.fromCharCode(10) + 'Pulse: ' + self._getNameArray(1,info.pulse) + String.fromCharCode(10) + 'Tags:' + info.tagPulse  + String.fromCharCode(10);
+              _tooltipPulse='Date: ' + info.date + ' | N°' + info.corrVisit + String.fromCharCode(10);
+              _tooltipPulse=_tooltipPulse + 'Stage: ' + info.stage + String.fromCharCode(10);
+              _tooltipPulse=_tooltipPulse + 'Pulse: ' + self._getNameArray(1,info.pulse) + String.fromCharCode(10) + 'Tags:' + info.tagPulse  + String.fromCharCode(10);
               _tooltipPulse=_tooltipPulse + 'Intervention: ' + info.intervention ;
-              _tooltipWeather='Date: ' + info.date + ' | N°' + info.corrVisit + String.fromCharCode(10) +'Environment: ' +self._getNameArray(2,info.weather) + String.fromCharCode(10) +'Tags:' + info.tagWeather;
+              _tooltipWeather='Date: ' + info.date + ' | N°' + info.corrVisit + String.fromCharCode(10);
+              _tooltipWeather=_tooltipWeather + 'Stage: ' + info.stage + String.fromCharCode(10);
+              _tooltipWeather=_tooltipWeather + 'Environment: ' +self._getNameArray(2,info.weather) + String.fromCharCode(10) +'Tags:' + info.tagWeather;
               row.push(new Date(info.date.substr(0, 4),parseInt(info.date.substr(5, 2)-1),info.date.substr(8, 2),info.corrVisit));
               row.push(self._getValue4Stage(parseInt(info.pulse),info.stage));
+              //*log
+              console.log('Stage: ' + info.stage + ' | Pulse: '+ info.pulse + ' | Envir: '+ info.weather);
+              
+              console.log(self._getValue4Stage(parseInt(info.pulse),info.stage));
+              console.log(self._getValue4Stage(parseInt(info.weather),info.stage));
+              //*
               row.push(_tooltipPulse);
               row.push(self._getValue4Stage(parseInt(info.weather),info.stage));
               row.push(_tooltipWeather);
@@ -139,7 +149,7 @@ class KanchaStatsVisits extends PolymerElement {
       var _numStage=0;
       var _obj=this.stageRange.find(item => item.value === _stage);
       _numStage=parseInt(_obj.id);
-      return _value*_numStage;
+      return _value+((_numStage-1)*5);
     }
     
     //TODO Deprecated
