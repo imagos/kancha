@@ -104,10 +104,10 @@ class KanchaStatsVisits extends PolymerElement {
               row.push(new Date(info.date.substr(0, 4),parseInt(info.date.substr(5, 2)-1),info.date.substr(8, 2),info.corrVisit));
               row.push(self._getValue4Stage(parseInt(info.pulse),info.stage));
               //*log
-              console.log('Stage: ' + info.stage + ' | Pulse: '+ info.pulse + ' | Envir: '+ info.weather);
+              // console.log('Stage: ' + info.stage + ' | Pulse: '+ info.pulse + ' | Envir: '+ info.weather);
               
-              console.log(self._getValue4Stage(parseInt(info.pulse),info.stage));
-              console.log(self._getValue4Stage(parseInt(info.weather),info.stage));
+              // console.log(self._getValue4Stage(parseInt(info.pulse),info.stage));
+              // console.log(self._getValue4Stage(parseInt(info.weather),info.stage));
               //*
               row.push(_tooltipPulse);
               row.push(self._getValue4Stage(parseInt(info.weather),info.stage));

@@ -254,8 +254,8 @@ class KanchaSensor extends PolymerElement {
           </div>
           
           <div class="card-actions" hidden$=[[hiddenBtnSubmit]]>
-            <paper-button class="button_verify" on-click="saveVisit"  >Regitrar</paper-button>
-            <paper-button class="button_cancel" on-click="reset">Cancelar</paper-button>
+            <paper-button class="button_verify" on-click="saveVisit"  >Save</paper-button>
+            <paper-button class="button_cancel" on-click="reset">Cancel</paper-button>
           </div>
           
         </paper-card>
@@ -369,9 +369,9 @@ class KanchaSensor extends PolymerElement {
   
   ready(){
     super.ready();
-    this.loadlistWeather();
-    this.loadlistPulse();
-    this.loadStage();
+    // this.loadlistWeather();
+    // this.loadlistPulse();
+    // this.loadStage();
     this._loadSuggetions();
     this._loadIntervention();
   }
