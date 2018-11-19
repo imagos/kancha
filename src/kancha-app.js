@@ -167,7 +167,7 @@ class KanchaApp extends PolymerElement {
     firebase.auth().onAuthStateChanged(function(account) {
       
       if (account) {
-        if (account.email.toUpperCase().indexOf('@BBVA.COM')>=0){
+        if (account.email.toUpperCase().indexOf('@BBVA.COM')>=0 || account.email.toUpperCase().indexOf('@KAIROSDS.com')>=0){
           var _userFirstName="";
           var _userName="";
           
