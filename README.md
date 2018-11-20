@@ -87,6 +87,10 @@ Looking for our older PSK2 Polycast or migration blog post? See [the previous RE
 
 
 --**********************
+## OS
+uname -a
+lsb_release -a
+
 # Usar NPM 8.4
 nvm ls
 nvm use 8.4

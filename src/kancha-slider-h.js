@@ -7,9 +7,8 @@ class KanchaSliderH extends PolymerElement {
       _value:     { type: Number, notify: true, value:1,  reflectToAttribute: true, observer: '_valueChanged' },
       min:        { type: Number, notify: true, value:1 },
       max:        { type: Number, notify: true, value:5 },
-      knobradius: { type: Number, notify: true },
       disabled:   { type: Boolean, notify: true, value:false },
-      limits:     { type: Array, notify:  true},
+      limits:     { type: Array, notify:  true, value: []},
       icon:       { type: String, notify: true, value: 'favorite'}
     };
   }
@@ -149,8 +148,12 @@ class KanchaSliderH extends PolymerElement {
 
   _valueChanged(newValue, oldValue) {
     if(newValue!=undefined && this.limits != undefined){
-      let res = this.limits.filter(item => item.id == newValue);  
-      this.$.label.innerHTML=res[0].name;
+      var res = this.limits.filter(item => item.id == newValue);  
+      if(res === undefined || res.length==0){
+        this.$.label.innerHTML=""; 
+      }else{
+        this.$.label.innerHTML=res[0].name;
+      }
     }
   }
 }

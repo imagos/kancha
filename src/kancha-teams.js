@@ -61,7 +61,7 @@ class KanchaTeams extends PolymerElement {
           <kancha-stats-visits teams=[[teams]] id="statsVisits"></kancha-stats-visits>
         </div>
         <div>
-          <kancha-coach teams=[[teams]] coaches=[[coaches]] id="kanchaCoach"></kancha-coach>
+          <kancha-coach teams=[[teams]] coaches=[[coaches]] id="kanchaCoach" user-uid=[[userUid]]></kancha-coach>
         </div>
       </paper-tabs>
     `;
@@ -136,11 +136,12 @@ class KanchaTeams extends PolymerElement {
   }
   
   _tabChanged(newValue, oldValue){
-    if(newValue==0){
-      this.$.sensor.loadStage();
-      this.$.sensor.loadlistWeather();
-      this.$.sensor.loadlistPulse();
-    } else if(newValue == 1){
+    // if(newValue==0){
+    //   this.$.sensor.loadStage();
+    //   this.$.sensor.loadlistWeather();
+    //   this.$.sensor.loadlistPulse();
+    // } else 
+    if(newValue == 1){
       this.$.statsVisits.loadTeams(this.teams);
       this.$.statsVisits.pulseRange = this.$.sensor.pulseRange;
       this.$.statsVisits.weatherRange = this.$.sensor.weatherRange;
@@ -149,6 +150,7 @@ class KanchaTeams extends PolymerElement {
       this.$.kanchaCoach.loadTeams(this.teams,this.dateVisit);
       this.$.kanchaCoach.loadlistWeather();
       this.$.kanchaCoach.loadlistPulse();
+      //this.$.kanchaCoach.userUid=this.userUid;
     }
   }
   loadlistAreas(){
@@ -179,10 +181,9 @@ class KanchaTeams extends PolymerElement {
       self.$.sensor.teamId=self.$.teamSel.selectedItem.value;
       self.$.sensor.teamName=self.$.teamSel.selectedItem.label;
       self.$.sensor.date=self.$.visitDate.value;
-      console.info(self.$.visitDate.value);
       self.$.sensor.userUid=self.userUid;
       self.$.sensor.userEmail=self.userEmail;
-      self.$.sensor.getVisit();
+      self.$.sensor.searchVisit();
     }else{
       console.log('Sin datos');
     }

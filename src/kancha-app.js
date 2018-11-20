@@ -167,7 +167,7 @@ class KanchaApp extends PolymerElement {
     firebase.auth().onAuthStateChanged(function(account) {
       
       if (account) {
-        if (account.email.toUpperCase().indexOf('@BBVA.COM')>=0 || account.email.toUpperCase().indexOf('@KAIROSDS.com')>=0){
+        //if (account.email.toUpperCase().indexOf('@BBVA.COM')>=0 || account.email.toUpperCase().indexOf('@KAIROSDS.COM')>=0){
           var _userFirstName="";
           var _userName="";
           
@@ -188,10 +188,10 @@ class KanchaApp extends PolymerElement {
           parent.set('userPicture', account.photoURL || '../images/avatar_login.png');
           parent.set('loggedIn', true);
           parent.$.teams.loadlistAreas();
-        }else{
-          parent.$.msgFail.innerHTML="Tu usuario no es BBVA";
-          parent.signOut();
-        }
+        // }else{
+        //   parent.$.msgFail.innerHTML="Tu usuario no es BBVA";
+        //   parent.signOut();
+        // }
       }
     });    
   }

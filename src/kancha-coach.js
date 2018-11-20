@@ -23,6 +23,10 @@ class KanchaCoach extends PolymerElement {
         type:   Array,
         notify: true,
       },
+      userUid: {
+        type: String,
+        notify: true
+      },
     };
   }
 
@@ -58,16 +62,18 @@ class KanchaCoach extends PolymerElement {
     `;
   }
     loadTeams(teams,_visitDate){
-        this.$.teamSel.items=teams;
-        this.visitDate=_visitDate;
+      this.$.teamSel.items=teams;
+      this.visitDate=_visitDate;
     }
-    _createVisit(data){
-        var elem=document.createElement('kancha-visit');
-        var _row=data;
-        _row.pulseDesc = this._getNameArray(1,data.pulse);
-        _row.weatherDesc = this._getNameArray(2,data.weather);
-        elem.visit=_row;
-        this.$.textPaperDialog.appendChild(elem);        
+    _createVisit(data,id){
+      var elem=document.createElement('kancha-visit');
+      var _row=data;
+      _row.pulseDesc = this._getNameArray(1,data.pulse);
+      _row.weatherDesc = this._getNameArray(2,data.weather);
+      elem.visit=_row;
+      elem.visitId=id;
+      elem.userUid = this.userUid;
+      this.$.textPaperDialog.appendChild(elem);
     }
   _loadlistReport(){
     var self=this;
@@ -77,7 +83,7 @@ class KanchaCoach extends PolymerElement {
           .get()
           .then(function(querySnapshot) {
               querySnapshot.forEach(function(doc) {
-                self._createVisit(doc.data());
+                self._createVisit(doc.data(),doc.id);
               });
           })
           .catch(function(error) {
@@ -88,7 +94,7 @@ class KanchaCoach extends PolymerElement {
           .get()
           .then(function(querySnapshot) {
               querySnapshot.forEach(function(doc) {
-                self._createVisit(doc.data());
+                self._createVisit(doc.data(),doc.id);
               });
           })
           .catch(function(error) {
@@ -146,18 +152,18 @@ class KanchaCoach extends PolymerElement {
     this._loadlistReport();
   }
   
-    //1==> pulseRange | 2==> weatherRange
-    _getNameArray(_type,_value){
-      let _obj={};
-      if(_type==1){
-        _obj=this.pulseRange.find(_obj => _obj.id === _value);
-      }else if(_type==2){
-        _obj=this.weatherRange.find(_obj => _obj.id === _value);
-      }
-      if(_obj===undefined){
-        return '';
-      }
-      return _obj.name;
+  //1==> pulseRange | 2==> weatherRange
+  _getNameArray(_type,_value){
+    let _obj={};
+    if(_type==1){
+      _obj=this.pulseRange.find(_obj => _obj.id === _value);
+    }else if(_type==2){
+      _obj=this.weatherRange.find(_obj => _obj.id === _value);
     }
+    if(_obj===undefined){
+      return '';
+    }
+    return _obj.name;
+  }
 }
 customElements.define('kancha-coach', KanchaCoach);

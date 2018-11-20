@@ -13,7 +13,6 @@ import '@polymer/paper-card/paper-card.js';
 import '@polymer/paper-toast/paper-toast.js';
 import '@polymer/paper-dialog/paper-dialog.js';
 import '@polymer/iron-icons/maps-icons.js';
-import './kancha-slider.js';
 import './kancha-slider-h.js';
 import './kancha-tags-input.js';
 import './kancha-input-list.js';
@@ -284,6 +283,11 @@ class KanchaSensor extends PolymerElement {
         value: false,
         observer: '_resetIdVisit'
       },
+      activeUpdate: {
+        type: Boolean,
+        notify: true,
+        value: false,
+      },
       teamId: {
         type: String,
         notify: true
@@ -364,14 +368,18 @@ class KanchaSensor extends PolymerElement {
         value:  1,
         observer: '_changeWeather'
       },
+      visitId: {
+        type: String,
+        notify: true
+      },
     };
   }
   
   ready(){
     super.ready();
-    // this.loadlistWeather();
-    // this.loadlistPulse();
-    // this.loadStage();
+    this.loadlistWeather();
+    this.loadlistPulse();
+    this.loadStage();
     this._loadSuggetions();
     this._loadIntervention();
   }
@@ -393,7 +401,7 @@ class KanchaSensor extends PolymerElement {
     this.corrVisit=0;
   }
   
-  getVisit(){
+  searchVisit(){
     this.cleanSensor();
     var self=this;
     var existsDocuments=false;
@@ -451,29 +459,8 @@ class KanchaSensor extends PolymerElement {
     }
   }
   
-  saveVisit(){
-    //Validar que los datos iniciales se encuentren llenos
+  addVisit(){
     var self=this;
-    if(self.$.stageList.selectedItem.value == null || self.$.stageList.selectedItem.value == ""){
-      self.$.stageList="Faltan Seleccionar el Stage";
-      return;
-    }    
-    if(self.$.tagPulse.tags == null || self.$.tagPulse.tags.length==0){
-      self.message="Faltan ingresar detalles en el Pulse";
-      self.$.tagPulse.focus();
-      return;
-    }
-    if(self.$.intervention.tags == null || self.$.intervention.tags.length==0){
-      self.message="Faltan ingresar los Intervention";
-      self.$.tagPulse.focus();
-      return;
-    }
-    // if(self.$.tagWeather.tags == null || self.$.tagWeather.tags.length==0){
-    //   self.message="Faltan ingresar los hashtags en el Weather";
-    //   self.$.tagWeather.focus();
-    //   return;
-    // }
-
     self.corrVisit++;
     db.collection("visits").add({
         teamId:     self.teamId,
@@ -500,6 +487,93 @@ class KanchaSensor extends PolymerElement {
       console.error("Error al registrar su visita: Details: " + error);
       self.message="Error al registrar su visita: Details: " + error;
     });
+  }
+  updateVisit(){
+    var self=this;
+    // Create a reference to the SF doc.
+    var sfDocRef = db.collection("visits").doc(self.visitId);
+    
+    return db.runTransaction(function(transaction) {
+        // This code may get re-run multiple times if there are conflicts.
+        return transaction.get(sfDocRef).then(function(sfDoc) {
+            if (!sfDoc.exists) {
+                throw "Document does not exist!";
+            }
+    
+            transaction.update(sfDocRef, { 
+              pulse:      self.$.pulseSlider._value,
+              weather:    self.$.weatherSlider._value,
+              tagPulse:   self.$.tagPulse.tags,
+              tagWeather: self.$.tagWeather.tags,
+              stage:      self.$.stageList.selectedItem.value,
+              intervention: self.$.intervention.tags,
+              updated:    firebase.firestore.Timestamp.now(),
+            });
+        });
+        
+    }).then(function() {
+        self.visibleSensor=false;
+        self.message="Visita actualizada";
+        console.log("Transaction successfully committed!");
+    }).catch(function(error) {
+        self.message=error;
+        console.log("Transaction failed: ", error);
+    });
+  }
+  saveVisit(){
+    //Validar que los datos iniciales se encuentren llenos
+    var self=this;
+    if(self.$.stageList.selectedItem.value == null || self.$.stageList.selectedItem.value == ""){
+      self.$.stageList="Faltan Seleccionar el Stage";
+      return;
+    }    
+    if(self.$.tagPulse.tags == null || self.$.tagPulse.tags.length==0){
+      self.message="Faltan ingresar detalles en el Pulse";
+      self.$.tagPulse.focus();
+      return;
+    }
+    if(self.$.intervention.tags == null || self.$.intervention.tags.length==0){
+      self.message="Faltan ingresar los Intervention";
+      self.$.tagPulse.focus();
+      return;
+    }
+    // if(self.$.tagWeather.tags == null || self.$.tagWeather.tags.length==0){
+    //   self.message="Faltan ingresar los hashtags en el Weather";
+    //   self.$.tagWeather.focus();
+    //   return;
+    // }
+    if(this.activeUpdate){
+      self.updateVisit();
+    }else{
+      self.addVisit();
+    }
+    
+  }
+  
+  getVisit(visitId){
+    console.info('cheguei');
+    var self=this;    
+    self.visitId=visitId;
+    var docRef = db.collection("visits").doc(visitId);
+    
+    docRef.get().then(function(doc) {
+        if (doc.exists) {
+            console.log("Document data:", doc.data());
+            self.$.pulseSlider.limits   =self.pulseRange;
+            self.$.weatherSlider.limits =self.weatherRange;
+            self.$.pulseSlider._value   =doc.data().pulse;
+            self.$.weatherSlider._value =doc.data().weather;
+            self.$.tagPulse.tags        =doc.data().tagPulse;
+            self.$.tagWeather.tags      =doc.data().tagWeather;
+            self.$.stageList.value      =doc.data().stage;
+            self.$.intervention.tags    =doc.data().intervention;
+        } else {
+            console.log("No such document!");
+        }
+    });
+    // .catch(function(error) {
+    //     console.log("Error getting document:", error);
+    // });
   }
   
   _resetIdVisit(newValue,oldValue){
