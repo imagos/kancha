@@ -81,6 +81,9 @@ class KanchaVisit extends PolymerElement {
             <iron-icon icon="image:healing"></iron-icon> [[_array2Paragraph(visit.intervention)]]
         </div>
         <div>  
+            <iron-icon icon="image:wb-sunny"></iron-icon> [[_array2Paragraph(visit.outcome)]]
+        </div>
+        <div>  
             <iron-icon icon="cloud"></iron-icon> [[visit.weather]] - [[visit.weatherDesc]]
             <br>
             <b>Tags:</b> [[_array2Paragraph(visit.tagWeather)]]

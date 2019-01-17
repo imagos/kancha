@@ -1,13 +1,3 @@
-/**
- * @license
- * Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
- */
-
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 import '@polymer/paper-card/paper-card.js';
 import '@polymer/paper-toast/paper-toast.js';
@@ -15,7 +5,6 @@ import '@polymer/paper-dialog/paper-dialog.js';
 import '@polymer/iron-icons/maps-icons.js';
 import './kancha-slider-h.js';
 import './kancha-tags-input.js';
-import './kancha-input-list.js';
 
 class KanchaSensor extends PolymerElement {
   static get template() {
@@ -189,6 +178,19 @@ class KanchaSensor extends PolymerElement {
               box-shadow: 0 0 0 0 rgba(204,169,44, 0);
           }
         }
+        .section {
+          margin-top: 10px;
+        }
+        .border-top {
+          border-top: 2px solid #e8e8e8;
+        }
+        .section_title { 
+          font-weight: bold;
+        }
+        .section_title_red {
+          font-weight: bold;
+          color: red
+        }
       </style>
       <paper-dialog id="pdMessage" modal=true>
         <h2>Kancha says:</h2>
@@ -235,8 +237,18 @@ class KanchaSensor extends PolymerElement {
                 <div class="dots" on-tap="openTipsIntervention"></div>
               </div>
             </div>
+         
+            <div class="margin_auto">
+              <div class="display_inline width_90">
+                <kancha-tags-input id="outcome" required=true title="Outcome" placeholder="example: #pendient or $win">
+                </kancha-tags-input>
+              </div>
+              <div class="display_inline vertical width_5"> 
+                <div class="dots" on-tap="openTipsOutcome"></div>
+              </div>
+            </div>
             
-            <div class="margin_auto">	
+            <div class="margin_auto border-top">	
             	<div class="display_inline vertical width_90">
               	 <kancha-slider-h id="weatherSlider" limits=[[weatherRange]] _value={{weatherSlider}} icon="cloud"></kancha-slider-h>
             	</div>
@@ -250,7 +262,16 @@ class KanchaSensor extends PolymerElement {
                 </kancha-tags-input>          	    
             	</div>
             </div>
+            
+            <div class="margin_auto border-top">	
+            	<div class="display_inline vertical width_90 section" id="listIndicators">
+            	  
+            	</div>
+            </div>
+            
           </div>
+          
+          
           
           <div class="card-actions" hidden$=[[hiddenBtnSubmit]]>
             <paper-button class="button_verify" on-click="saveVisit"  >Save</paper-button>
@@ -276,102 +297,30 @@ class KanchaSensor extends PolymerElement {
   
   static get properties() {
     return {
-      visibleSensor: {
-        type: Boolean,
-        reflectToAttribute: true,
-        notify: true,
-        value: false,
-        observer: '_resetIdVisit'
-      },
-      activeUpdate: {
-        type: Boolean,
-        notify: true,
-        value: false,
-      },
-      teamId: {
-        type: String,
-        notify: true
-      },
-      teamName: {
-        type: String,
-        notify: true
-      },
-      date: {
-        type: Date,
-        notify: true
-      },
-      userUid: {
-        type: String,
-        notify: true
-      },
-      userEmail: {
-        type: String,
-        notify: true
-      },
-      pulseRange: {
-        type:   Array,
-        notify: true,
-        reflectToAttribute: true,
-      },
-      weatherRange: {
-        type:   Array,
-        notify: true,
-        reflectToAttribute: true,
-      },
-      stageRange: {
-        type:   Array,
-        notify: true,
-        reflectToAttribute: true,
-      },
-      pulseSuggestions: {
-        type:   Array,
-        notify: true,
-      },
-      weatherSuggestions: {
-        type:   Array,
-        notify: true,
-      },
-      openMessage:{
-        type:   Boolean,
-        notify: true,
-        value:  false
-      },
-      message:{
-        type:   String,
-        notify: true,
-        observer: '_messageChanged',
-        value: ""
-      },
-      idVisit:{
-        type:   String,
-        notify: true
-      },
-      hiddenBtnSubmit:{
-        type:   Boolean,
-        notify: true,
-        value:  true
-      },
-      corrVisit :{
-        type:   Number,
-        notify: true,
-        value:  0
-      },
-      pulseSlider:{
-        type:   String,
-        notify: true,
-        value:  1,
-        observer: '_changePulse'
-      },
-      weatherSlider:{
-        type:   String,
-        notify: true,
-        value:  1,
-        observer: '_changeWeather'
-      },
-      visitId: {
-        type: String,
-        notify: true
-      },
+      visibleSensor:  {   type: Boolean,  reflectToAttribute: true,   notify: true,   value: false,   observer: '_resetIdVisit' },
+      activeUpdate:   {   type: Boolean,  notify: true,               value: false,   },
+      teamId:         {   type: String,   notify: true  },
+      teamName:       {   type: String,   notify: true  },
+      date:           {   type: Date,     notify: true  },
+      userUid:        {   type: String,   notify: true  },
+      userEmail:      {   type: String,   notify: true  },
+      pulseRange:     {   type: Array,    notify: true,   reflectToAttribute: true,   },
+      weatherRange:   {   type: Array,    notify: true,   reflectToAttribute: true,   },
+      stageRange:     {   type: Array,    notify: true,   reflectToAttribute: true,   },
+      pulseSuggestions: { type: Array,    notify: true, },
+      weatherSuggestions: {type: Array,   notify: true, },
+      openMessage:    {   type: Boolean,  notify: true,   value: false  },
+      message:        {   type: String,   notify: true,   observer: '_messageChanged',    value: ""   },
+      idVisit:        {   type: String,   notify: true  },
+      hiddenBtnSubmit:{   type: Boolean,  notify: true,   value:  true  },
+      corrVisit :     {   type: Number,   notify: true,   value:  0     },
+      pulseSlider:    {   type: String,   notify: true,   value:  1,  observer: '_changePulse'  },
+      weatherSlider:  {   type: String,   notify: true,   value:  1,  observer: '_changeWeather'  },
+      outcomeRange:   {   type: Array,    notify: true,   reflectToAttribute: true, },
+      indicators:     {   type: Array,    notify: true,    },
+      visitId:        {   type: String,   notify: true    },
+      forecastedDate: {   type: String,   notify: true,   },
+      indicatorRange: {   type: Array,    notify: true,   value: [{id:1, name: "1"},{id:2, name: "2"},{id:3, name: "3"},{id:4, name: "4"},{id:5, name: "5"}]},
     };
   }
   
@@ -382,6 +331,7 @@ class KanchaSensor extends PolymerElement {
     this.loadStage();
     this._loadSuggetions();
     this._loadIntervention();
+    this._loadOutcome();
   }
   
   _changePulse(newValue,oldValue){
@@ -396,9 +346,10 @@ class KanchaSensor extends PolymerElement {
           
     this.$.tagPulse.tags        = [];
     this.$.tagWeather.tags      = [];
-    this.$.intervention.tags      = [];
-    this.idVisit="";
-    this.corrVisit=0;
+    this.$.intervention.tags    = [];
+    this.$.outcome.tags         = [];
+    this.idVisit                = "";
+    this.corrVisit              = 0;
   }
   
   searchVisit(){
@@ -427,23 +378,30 @@ class KanchaSensor extends PolymerElement {
           
           self.$.stageList.value      = data.stage;
           self.$.intervention.tags    = data.intervention;
+          self.$.outcome.tags         = data.outcome;
           
-          self.corrVisit = data.corrVisit;
-          self.idVisit=data.id;
-          existsDocuments=true;
+          self.corrVisit              = data.corrVisit;
+          self.idVisit                =data.id;
+          existsDocuments             =true;
+          
+          self.indicators             =data.indicators;
+          self.forecastedDate         =data.forecastedDate;        
           self.message="Ajá! Tenemos una visita registrada de " + data.userEmail; + ". Si tienes algo que aportar es el momento.";    
           self.hiddenBtnSubmit=true;
+          self._loadIndicatorsbyIdVisit();
         });
-        
+        if(!existsDocuments){
+          self.message="Tú serás el primero en registrar la visita. Happy coaching!";    
+          self.hiddenBtnSubmit=false;
+          self._loadIndicatorsbyTeam();
+        }        
       })
       .catch(function(error) {
         self.message="Error getting documents: "+ error;
         console.info("Error getting documents: "+ error);
       });
-      if(!existsDocuments){
-        self.message="Tú serás el primero en registrar la visita. Happy coaching!";    
-        self.hiddenBtnSubmit=false;
-      }
+
+    
     self.visibleSensor=true;
   }
   
@@ -474,6 +432,9 @@ class KanchaSensor extends PolymerElement {
         userEmail:  self.userEmail,
         stage:      self.$.stageList.selectedItem.value,
         intervention: self.$.intervention.tags,
+        outcome:    self.$.outcome.tags,
+        indicators: self.indicators,
+        forecastedDate: self.forecastedDate,
         created:    firebase.firestore.Timestamp.now(),
         corrVisit:  self.corrVisit
     })
@@ -501,20 +462,22 @@ class KanchaSensor extends PolymerElement {
             }
     
             transaction.update(sfDocRef, { 
-              pulse:      self.$.pulseSlider._value,
-              weather:    self.$.weatherSlider._value,
-              tagPulse:   self.$.tagPulse.tags,
-              tagWeather: self.$.tagWeather.tags,
-              stage:      self.$.stageList.selectedItem.value,
+              pulse:        self.$.pulseSlider._value,
+              weather:      self.$.weatherSlider._value,
+              tagPulse:     self.$.tagPulse.tags,
+              tagWeather:   self.$.tagWeather.tags,
+              stage:        self.$.stageList.selectedItem.value,
               intervention: self.$.intervention.tags,
-              updated:    firebase.firestore.Timestamp.now(),
+              outcome:      self.$.outcome.tags,
+              indicators:   self.indicators,
+              forecastedDate: self.forecastedDate,
+              updated:      firebase.firestore.Timestamp.now(),
             });
         });
         
     }).then(function() {
         self.visibleSensor=false;
         self.message="Visita actualizada";
-        console.log("Transaction successfully committed!");
     }).catch(function(error) {
         self.message=error;
         console.log("Transaction failed: ", error);
@@ -537,21 +500,28 @@ class KanchaSensor extends PolymerElement {
       self.$.tagPulse.focus();
       return;
     }
-    // if(self.$.tagWeather.tags == null || self.$.tagWeather.tags.length==0){
-    //   self.message="Faltan ingresar los hashtags en el Weather";
-    //   self.$.tagWeather.focus();
-    //   return;
-    // }
+    self.indicators=[];
+    var _arrIndicators=[];
+    var indicators=self.$.listIndicators;
+    var list = indicators.querySelectorAll("kancha-slider-h");
+    if (list && list.length > 0) {
+        for(var i=0;i<list.length;i++){
+          var item={};
+          item.id       = list[i].id;
+          item.value    = list[i]._value;
+          _arrIndicators.push(item)
+        }
+    }
+    self.indicators=_arrIndicators;
+    
     if(this.activeUpdate){
       self.updateVisit();
     }else{
       self.addVisit();
     }
-    
   }
   
   getVisit(visitId){
-    console.info('cheguei');
     var self=this;    
     self.visitId=visitId;
     var docRef = db.collection("visits").doc(visitId);
@@ -567,6 +537,11 @@ class KanchaSensor extends PolymerElement {
             self.$.tagWeather.tags      =doc.data().tagWeather;
             self.$.stageList.value      =doc.data().stage;
             self.$.intervention.tags    =doc.data().intervention;
+            self.$.outcome.tags         =doc.data().outcome;
+            self.indicators             =doc.data().indicators;
+            self.forecastedDate         =doc.data().forecastedDate;
+            self.teamId                 =doc.data().teamId;
+            self._loadIndicatorsbyIdVisit();
         } else {
             console.log("No such document!");
         }
@@ -696,6 +671,26 @@ class KanchaSensor extends PolymerElement {
       });
   }
   
+  _loadOutcome(){
+    var self=this;
+    db.settings({timestampsInSnapshots: true});
+    this.outcomeRange=[];
+    db.collection("outcomeRange")
+      .get()
+      .then(function(querySnapshot) {
+          querySnapshot.forEach(function(doc) {
+              var item={};
+              item.value  = doc.data().name;
+              item.label  = doc.data().name;
+              item.description  = doc.data().description;
+              self.outcomeRange.push(item);
+          });
+      })
+      .catch(function(error) {
+          console.log("Error getting Stage Range: ", error);
+      });
+  }
+  
   _cleanTableTips(array){
     this.$.pdTips.open();
     var table=this.$.textPaperDialog;
@@ -717,6 +712,97 @@ class KanchaSensor extends PolymerElement {
       cell2.innerHTML = element.description;
     });
   }
+
+  _loadIndicatorsbyTeam(){
+    var self=this;
+    var existsDocuments=false;
+    db.settings({timestampsInSnapshots: true});
+    console.info(self.teamId);
+    self.$.listIndicators.innerHTML="";
+    
+    db.collection("forecastedIndicators").where("teamId", "==", self.teamId).orderBy("forecastedDate","desc").orderBy("created","desc").limit(1)
+      .get()
+      .then(function(querySnapshot) {
+        querySnapshot.forEach(function(doc) {
+          // doc.data() is never undefined for query doc snapshots
+          console.log(doc.data());
+          var data=doc.data();
+          self.forecastedDate = data.forecastedDate;
+          var span=document.createElement('SPAN');
+          var t = document.createTextNode("Team Indicators - Forecasted Date: " + data.forecastedDate);
+          span.appendChild(t);
+          span.classList.add("section_title");
+          self.$.listIndicators.appendChild(span);
+          data.indicators.forEach(function(item) {
+            var elem=document.createElement('kancha-slider-h');
+            elem.setAttribute("id", item.value);
+            elem._value =1;
+            elem.limits =self.indicatorRange;
+            elem.icon   ="finger";
+            elem.title  =item.label;
+            self.$.listIndicators.appendChild(elem);
+          });
+          existsDocuments=true;
+        });
+        if(!existsDocuments){
+          var span=document.createElement('SPAN');
+          var t   = document.createTextNode("Team without indicators ☹ ");
+          span.appendChild(t);
+          span.classList.add("section_title_red");
+          self.$.listIndicators.appendChild(span);
+        }   
+      })
+      .catch(function(error) {
+        console.info("Error getting documents: "+ error);
+      });
+  }
+  
+  _loadIndicatorsbyIdVisit(){
+    var self=this;
+    var existsDocuments=false;
+    db.settings({timestampsInSnapshots: true});
+    console.info(self.teamId);
+    self.$.listIndicators.innerHTML="";
+    
+    db.collection("forecastedIndicators").where("teamId", "==", self.teamId).where("forecastedDate", "==", self.forecastedDate).orderBy("created","desc").limit(1)
+      .get()
+      .then(function(querySnapshot) {
+        querySnapshot.forEach(function(doc) {
+          var data=doc.data();
+          self.forecastedDate = data.forecastedDate;
+          var span=document.createElement('SPAN');
+          var t = document.createTextNode("Team Indicators - Forecasted Date: " + data.forecastedDate);
+          span.appendChild(t);
+          span.classList.add("section_title");
+          self.$.listIndicators.appendChild(span);
+          data.indicators.forEach(function(item) {
+            var elem=document.createElement('kancha-slider-h');
+            elem.setAttribute("id", item.value);
+            elem._value =1;
+            for (var i = 0; i < self.indicators.length; i++) {
+                if (self.indicators[i].id === item.value) {
+                    elem._value=self.indicators[i].value;
+                }
+            }
+            elem.limits =self.indicatorRange;
+            elem.icon   ="finger";
+            elem.title  =item.label;
+            self.$.listIndicators.appendChild(elem);
+          });
+          existsDocuments=true;
+        });
+        if(!existsDocuments){
+          var span=document.createElement('SPAN');
+          var t   = document.createTextNode("Team without indicators ☹ ");
+          span.appendChild(t);
+          span.classList.add("section_title_red");
+          self.$.listIndicators.appendChild(span);
+        }   
+      })
+      .catch(function(error) {
+        console.info("Error getting documents: "+ error);
+      });
+  }
   
   openTipsPulse(){
     this._cleanTableTips(this.pulseRange);
@@ -735,6 +821,9 @@ class KanchaSensor extends PolymerElement {
   }
   openTipsIntervention(){
     this._cleanTableTips(this.interventionRange);
+  }
+  openTipsOutcome(){
+    this._cleanTableTips(this.outcomeRange);
   }
 }
 

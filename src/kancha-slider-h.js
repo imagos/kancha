@@ -4,12 +4,13 @@ import '@polymer/paper-styles/typography.js';
 class KanchaSliderH extends PolymerElement {
   static get properties() {
     return {
-      _value:     { type: Number, notify: true, value:1,  reflectToAttribute: true, observer: '_valueChanged' },
-      min:        { type: Number, notify: true, value:1 },
-      max:        { type: Number, notify: true, value:5 },
-      disabled:   { type: Boolean, notify: true, value:false },
-      limits:     { type: Array, notify:  true, value: []},
-      icon:       { type: String, notify: true, value: 'favorite'}
+      _value:     { type: Number,   notify: true, value:1,  reflectToAttribute: true, observer: '_valueChanged' },
+      min:        { type: Number,   notify: true, value:1 },
+      max:        { type: Number,   notify: true, value:5 },
+      disabled:   { type: Boolean,  notify: true, value:false },
+      limits:     { type: Array,    notify: true, value: []},
+      icon:       { type: String,   notify: true, value: 'favorite'},
+      title:      { type: String,   notify: true}
     };
   }
 
@@ -73,6 +74,11 @@ class KanchaSliderH extends PolymerElement {
         -webkit-mask:  url(../images/svg/cloud-queue.svg) no-repeat 50% 50% !important;
         mask: url(../images/svg/cloud-queue.svg) no-repeat 50% 50% !important;
     }
+    .finger::-webkit-slider-thumb {
+        background-color: #ee6e73 !important;
+        -webkit-mask:  url(../images/svg/finger.svg) no-repeat 50% 50% !important;
+        mask: url(../images/svg/finger.svg) no-repeat 50% 50% !important;
+    }
     input[type=range]:focus::-webkit-slider-runnable-track {
       background: #DDDCE6;
     }
@@ -132,10 +138,12 @@ class KanchaSliderH extends PolymerElement {
     input[type=range]:focus::-ms-fill-upper {
       background: #DDDCE6;
     }
-      
-
+    .title {
+      width:  100%;
+    }
     </style>
     <div class="container">
+      <div class="title">[[title]]</div>
       <div class="width_50">
         <input type="range" min=[[min]] max=[[max]] value="{{_value::input}}" id="range" class$="[[icon]]">
       </div>

@@ -5,14 +5,7 @@ import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/paper-input/paper-input.js';
 import '@polymer/polymer/lib/elements/dom-repeat.js';
 import '@cwmr/paper-chip/paper-chip.js';
-/**
-* `paper-tags-input`
-* Material Design input control for a collection of tags
-*
-* @customElement
-* @polymer
-* @demo demo/index.html
-*/
+
 class KanchaTagsInput extends GestureEventListeners(PolymerElement) {
   static get template() {
     return html`

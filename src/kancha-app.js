@@ -188,6 +188,7 @@ class KanchaApp extends PolymerElement {
           parent.set('userPicture', account.photoURL || '../images/avatar_login.png');
           parent.set('loggedIn', true);
           parent.$.teams.loadlistAreas();
+          parent.$.teams.loadlistTeamIndicators();
         // }else{
         //   parent.$.msgFail.innerHTML="Tu usuario no es BBVA";
         //   parent.signOut();

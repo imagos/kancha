@@ -50,7 +50,7 @@ class KanchaCoach extends PolymerElement {
     </style>
     <div class="container">
         <div class="container left">
-            <vaadin-date-picker id="visitDate" style="width:40%;" required=true value={{visitDate}}>
+            <vaadin-date-picker id="visitDate" style="width:40%;" value={{visitDate}}>
             </vaadin-date-picker>
             <vaadin-combo-box id="teamSel" style="width:45%;" placeholder="Team" value={{teamName}}></vaadin-combo-box>
             <paper-icon-button icon="search" on-click="loadCoachesActivities">
@@ -75,33 +75,59 @@ class KanchaCoach extends PolymerElement {
       elem.userUid = this.userUid;
       this.$.textPaperDialog.appendChild(elem);
     }
+
+  _reportbyTeam(){
+    var self=this;
+    db.collection("visits").where("date",">=",'2018-01-01').where("teamId","==",self.$.teamSel.selectedItem.value).orderBy("date", "desc")
+      .get()
+      .then(function(querySnapshot) {
+          querySnapshot.forEach(function(doc) {
+            self._createVisit(doc.data(),doc.id);
+          });
+      })
+      .catch(function(error) {
+          console.log("Error getting Visit Report: ", error);
+      });
+  }
+  _reportbyDate_Team(){
+    var self=this;
+    db.collection("visits").where("date","==",self.visitDate).where("teamId","==",self.$.teamSel.selectedItem.value)
+      .get()
+      .then(function(querySnapshot) {
+          querySnapshot.forEach(function(doc) {
+            self._createVisit(doc.data(),doc.id);
+          });
+      })
+      .catch(function(error) {
+          console.log("Error getting Visit Report: ", error);
+      });
+  }  
+  _reportbyDate(){
+    var self=this;
+    db.collection("visits").where("date","==",self.visitDate)
+      .get()
+      .then(function(querySnapshot) {
+          querySnapshot.forEach(function(doc) {
+            self._createVisit(doc.data(),doc.id);
+          });
+      })
+      .catch(function(error) {
+          console.log("Error getting Visit Report: ", error);
+      });    
+  }
+  
   _loadlistReport(){
     var self=this;
     db.settings({timestampsInSnapshots: true});
     if(self.$.teamSel.selectedItem == null){
-        db.collection("visits").where("date","==",self.visitDate)
-          .get()
-          .then(function(querySnapshot) {
-              querySnapshot.forEach(function(doc) {
-                self._createVisit(doc.data(),doc.id);
-              });
-          })
-          .catch(function(error) {
-              console.log("Error getting Visit Report: ", error);
-          });        
+      self._reportbyDate();
     }else{
-        db.collection("visits").where("date","==",self.visitDate).where("teamId","==",self.$.teamSel.selectedItem.value)
-          .get()
-          .then(function(querySnapshot) {
-              querySnapshot.forEach(function(doc) {
-                self._createVisit(doc.data(),doc.id);
-              });
-          })
-          .catch(function(error) {
-              console.log("Error getting Visit Report: ", error);
-          });
+      if(self.visitDate == null || self.visitDate == ""){
+        self._reportbyTeam();  
+      }else{
+        self._reportbyDate_Team();  
+      }
     }
-
   }
   
   loadlistPulse(){

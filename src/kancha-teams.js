@@ -5,9 +5,12 @@ import '@vaadin/vaadin-combo-box/vaadin-combo-box.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-tabs/paper-tabs.js';
 import '@polymer/paper-tabs/paper-tab.js';
+import '@polymer/iron-icon/iron-icon.js';
+import '@polymer/iron-icons/iron-icons.js'
 import './kancha-sensor.js';
 import './kancha-coach.js';
 import './kancha-stats-visits.js';
+import './kancha-team-indicator.js';
 
 class KanchaTeams extends PolymerElement {
   static get template() {
@@ -40,9 +43,10 @@ class KanchaTeams extends PolymerElement {
         }
       </style>
       <paper-tabs selected="{{selected}}">
-        <paper-tab>Sensor</paper-tab>
-        <paper-tab>Medical Record</paper-tab>
-        <paper-tab>Coaches</paper-tab>
+        <paper-tab> <iron-icon icon="settings-remote">  </iron-icon>Sensor        </paper-tab>
+        <paper-tab> <iron-icon icon="trending-up">      </iron-icon>Medical Record</paper-tab>
+        <paper-tab> <iron-icon icon="view-list">        </iron-icon>Coaches       </paper-tab>
+        <paper-tab> <iron-icon icon="icons:flag">       </iron-icon>Indicators    </paper-tab>
       </paper-tabs>
       <iron-pages selected="{{selected}}">
         <div>
@@ -58,10 +62,13 @@ class KanchaTeams extends PolymerElement {
           </div>
         </div>
         <div>
-          <kancha-stats-visits teams=[[teams]] id="statsVisits"></kancha-stats-visits>
+          <kancha-stats-visits    teams=[[teams]] id="statsVisits"></kancha-stats-visits>
         </div>
         <div>
-          <kancha-coach teams=[[teams]] coaches=[[coaches]] id="kanchaCoach" user-uid=[[userUid]]></kancha-coach>
+          <kancha-coach           teams=[[teams]] coaches=[[coaches]] id="kanchaCoach" user-uid=[[userUid]]></kancha-coach>
+        </div>
+        <div>
+          <kancha-team-indicator  teams=[[teams]] id="teamIndicator" user-uid=[[userUid]]></kancha-team-indicator>
         </div>
       </paper-tabs>
     `;
@@ -83,6 +90,11 @@ class KanchaTeams extends PolymerElement {
         notify: true
       },
       teams: {
+        type: Array,
+        notify: true,
+        value:[]
+      },
+      teamIndicators: {
         type: Array,
         notify: true,
         value:[]
@@ -151,6 +163,9 @@ class KanchaTeams extends PolymerElement {
       this.$.kanchaCoach.loadlistWeather();
       this.$.kanchaCoach.loadlistPulse();
       //this.$.kanchaCoach.userUid=this.userUid;
+    } else if(newValue == 3){
+      this.$.teamIndicator.loadTeams(this.teams);
+      this.$.teamIndicator.loadIndicators(this.teamIndicators);
     }
   }
   loadlistAreas(){
@@ -173,6 +188,27 @@ class KanchaTeams extends PolymerElement {
       .catch(function(error) {
           console.log("Error getting documents: ", error);
       });
+  }
+  
+  loadlistTeamIndicators(){
+    var self=this;
+    self.teamIndicators=[];
+    db.collection("teamIndicators").where("active","==",true)
+      .get()
+      .then(function(querySnapshot) {
+          querySnapshot.forEach(function(doc) {
+            var item={};
+            item.id     = doc.id;
+            item.color  = doc.data().color;
+            item.group  = doc.data().group;
+            item.label  = doc.data().label;
+            item.value  = doc.data().value;
+            self.teamIndicators.push(item);
+          });
+      })
+      .catch(function(error) {
+          console.log("Error getting Team Indicators: ", error);
+      }); 
   }
   
   searchVisit(){

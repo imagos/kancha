@@ -5,136 +5,120 @@ import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/paper-input/paper-input.js';
 import '@polymer/polymer/lib/elements/dom-repeat.js';
 import '@vaadin/vaadin-combo-box/vaadin-combo-box-light.js';
-import './kancha-tags-input.js';
+import {TagsInput} from'./tags-input.js';
 
-class KanchaInputList extends GestureEventListeners(PolymerElement) {
+class KanchaInputList extends TagsInput {
   static get template() {
     return html`
         <style>
-            :host {
-                display: block;
-            }
-            :host[hidden] {
-                display: none !important;
-            }
-            input {
-                text-transform: lowercase;
-                height: 36px;
-                width: auto !important;
-                padding-left: 0.5em;
-            }
-            paper-chip {
-                margin: 2px;
-                padding-right: 6px;
-                cursor: pointer;
-            }
-            iron-icon {
-                --iron-icon-height: 20px;
-                --iron-icon-width: 20px;
-                color: var(--disabled-text-color);
-            }
+          :host {
+            display: block;
+          }
+          .container {
+            @apply --layout-vertical;
+            @apply --tags-container;
+          }
+          .tags {
+            @apply --layout-horizontal;
+            @apply --layout-center;
+            @apply --layout-wrap;
+          }
+          .tag {
+            padding: 1px 2px;
+            margin: 2px;
+            border: 1px solid #999;
+            @apply --tags-existing-tag;
+          }
+          #input {
+            @apply --tags-input;
+          }
+          iron-icon {
+            --iron-icon-height: var(--tags-remove-icon-size, 12px);
+            --iron-icon-width: var(--tags-remove-icon-size, 12px);
+            @apply --tags-remove-icon;
+          }
         </style>
-        <vaadin-combo-box-light id="combo" item-label-path="[[itemLabel]]" item-value-path="[[itemValue]]" items="[[options]]" 
+      <div class="container">
+        <div class="tags">
+          <template is="dom-repeat" items="[[tags]]" as="tag">
+            <div class="tag">
+              <span>[[_getTagName(tag)]]</span>
+              <iron-icon
+                tabindex="0"
+                hidden$="[[noEdit]]"
+                icon="kancha-icons:remove"
+                on-keydown="_onRemoveKeydown"
+                on-tap="_removeTag">
+              </iron-icon>
+            </div>
+          </template>
+        </div>
+        <vaadin-combo-box-light id="combo" item-label-path="[[itemLabel]]" item-value-path="[[itemValue]]" items="[[options]]"
         selected-item="{{selectedItem}}">
-          <paper-input id="tagList" label=[[title]] placeholder=[[placeholder]] required=[[required]] on-keydown="_onInputKeydown">
-              <div slot="prefix">
-                  <template is="dom-repeat" items="[[tags]]">
-                      <paper-chip selectable="">[[item]] <iron-icon icon="icons:cancel" on-tap="_onTagRemoveTapped"></iron-icon></paper-chip>
-                  </template>
-              </div>
-          </paper-input>
+          <div class="input-container">
+            <paper-input
+              id="input"
+              hidden$="[[noEdit]]"
+              no-label-float
+              label="[[_label]]"
+              autofocus$="[[autofocus]]"
+              value="{{tag}}">
+            </paper-input>
+          </div>
         </vaadin-combo-box-light>
+      </div>
 `;
   }
 
   static get is() { return 'kancha-input-list'; }
   static get properties() {
       return {
-          tags: {
-              type: Array,
-              notify: true,
-              value: function() { return []; }
-          },
-          placeholder:{
-              type: String,
-              notify: true
-          },
-          title:{
-              type: String,
-              notify: true
-          },
-          required:{
-              type: Boolean,
-              notify: true,
-              value:false
-          },
-          /**
-          * List of options to select from
-          */
-          options: {
-            type: Array,
-            value: []
-          },
-          /**
-          * Selected item
-          */
-          selectedItem: {
-            type: Object,
-            observer: '_selectedObserver',
-          },
-          /**
-          * Name of options property used as value
-          */
-          itemValue: {
-            type: String,
-            value: 'value',
-          },
-          /**
-          * Name of options property used as label
-          */
-          itemLabel: {
-            type: String,
-            value: 'label',
-          },
+          options:        {   type: Array,    },
+          selectedItem:   {   type: Object,   observer: '_selectedObserver',},
+          itemValue:      {   type: String,   value: 'value', },
+          itemLabel:      {   type: String,   value: 'label', },
       };
   }
-
+  /**
+   * Add a tag to the internal array.
+   */
   add(tag) {
-      if (this.tags === null) {
-          this.tags = [];
-      }
-      
-      var trimmedTag = tag.replace(/^\s+/, '').replace(/\s+$/, '');
-      if (trimmedTag !== '') {
-          var tagIndex = this.tags.indexOf(trimmedTag);
-          if (tagIndex === -1) {
-              this.push('tags', trimmedTag);
-          }
-      }
+    this.push('tags', tag);
+    this._fire('tag-added', tag);
   }
-  remove(tag) {
-      if (this.tags === null) {
-          return;
-      }
-      var tagIndex = this.tags.indexOf(tag);
-      if (tagIndex > -1) {
-          this.splice('tags', tagIndex, 1);
-      }
+  /**
+   * Remove a tag from the tags array, and returns it to the options array
+   */
+  _removeTag(e) {
+    const { index } = e.model;
+    const currObject = this.tags[index];
+    this.remove(index);
+    this.push('options', currObject);
+    this.focus();
   }
-    
-  _onTagRemoveTapped(e) {
-      e.preventDefault();
-
-      this.remove(e.model.item);
+  /**
+  * Observer when item is selected
+  */
+  _selectedObserver(newValue) {
+    if(newValue) {
+      // Get the selected value
+      const value = this.$.combo._getItemValue(this.selectedItem);
+      // Add name to array
+      this.add(newValue);
+      // Remove seleted item, to reset input
+      this.selectedItem = null;
+      // Reset input value
+      this.tag = '';
+      // Remove selected option from array
+      this.options = this.options.filter(n => n.value != value)
+    }
   }
-  _onInputKeydown(e) {
-      if (e.keyCode === 13) {
-          this.add(e.target.value.toLowerCase());
-          e.target.value = '';
-      }
-  }
-  focus(){
-    this.$.tagList.focus();
+  /**
+  * Print tag name with given label name
+  */
+  _getTagName(tag) {
+    const { itemLabel } = this;
+    return tag[itemLabel];
   }
 }
 
