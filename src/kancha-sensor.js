@@ -717,7 +717,6 @@ class KanchaSensor extends PolymerElement {
     var self=this;
     var existsDocuments=false;
     db.settings({timestampsInSnapshots: true});
-    console.info(self.teamId);
     self.$.listIndicators.innerHTML="";
     
     db.collection("forecastedIndicators").where("teamId", "==", self.teamId).orderBy("forecastedDate","desc").orderBy("created","desc").limit(1)
@@ -725,7 +724,6 @@ class KanchaSensor extends PolymerElement {
       .then(function(querySnapshot) {
         querySnapshot.forEach(function(doc) {
           // doc.data() is never undefined for query doc snapshots
-          console.log(doc.data());
           var data=doc.data();
           self.forecastedDate = data.forecastedDate;
           var span=document.createElement('SPAN');
@@ -761,7 +759,6 @@ class KanchaSensor extends PolymerElement {
     var self=this;
     var existsDocuments=false;
     db.settings({timestampsInSnapshots: true});
-    console.info(self.teamId);
     self.$.listIndicators.innerHTML="";
     
     db.collection("forecastedIndicators").where("teamId", "==", self.teamId).where("forecastedDate", "==", self.forecastedDate).orderBy("created","desc").limit(1)
