@@ -214,7 +214,7 @@ class KanchaSensor extends PolymerElement {
               </div>
             </div>
             <div class="margin_auto">
-              <div class="display_inline vertical width_90">
+              <div class="display_inline width_90">
                 <kancha-slider-h id="pulseSlider" limits=[[pulseRange]] _value={{pulseSlider}}></kancha-slider-h>
               </div>
               <div class="display_inline width_5"> 
@@ -249,7 +249,7 @@ class KanchaSensor extends PolymerElement {
             </div>
             
             <div class="margin_auto border-top">	
-            	<div class="display_inline vertical width_90">
+            	<div class="display_inline width_90">
               	 <kancha-slider-h id="weatherSlider" limits=[[weatherRange]] _value={{weatherSlider}} icon="cloud"></kancha-slider-h>
             	</div>
               <div class="display_inline vertical width_5"> 
@@ -264,7 +264,7 @@ class KanchaSensor extends PolymerElement {
             </div>
             
             <div class="margin_auto border-top">	
-            	<div class="display_inline vertical width_90 section" id="listIndicators">
+            	<div class="display_inline width_90 section" id="listIndicators">
             	  
             	</div>
             </div>
@@ -718,7 +718,7 @@ class KanchaSensor extends PolymerElement {
     var existsDocuments=false;
     db.settings({timestampsInSnapshots: true});
     self.$.listIndicators.innerHTML="";
-    
+    self.forecastedDate="";
     db.collection("forecastedIndicators").where("teamId", "==", self.teamId).orderBy("forecastedDate","desc").orderBy("created","desc").limit(1)
       .get()
       .then(function(querySnapshot) {
