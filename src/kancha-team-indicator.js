@@ -100,10 +100,14 @@ class KanchaTeamIndicator extends PolymerElement {
       var self = this;
       var user = firebase.auth().currentUser;
       if (user != null) {
+        console.info(user);
         this.userUid  = user.uid;
+        this.userName = user.displayName || user.email;
+        console.log(this.userName);
+        /*
         user.providerData.forEach(function (profile) {
           self.userName = profile.displayName || profile.email;
-        });
+        });*/
       }
     }
     loadTeams(teams){
